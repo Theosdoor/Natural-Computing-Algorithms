@@ -133,6 +133,143 @@ start_time = time.time()
 
 intended_num_detectors = num_detectors
 
+# --------from TESTING ----------------
+def get_location_of_self_testing(self_testing):
+    self_location = self_testing
+    return self_location
+
+def get_location_of_non_self_testing(non_self_testing):
+    non_self_location = non_self_testing
+    return non_self_location
+
+def Euclidean_distance(n, first_individual, second_individual):
+    distance = 0
+    for i in range(0, n):
+        distance = distance + (first_individual[i] - second_individual[i])**2
+    distance = math.sqrt(distance)
+    return distance
+
+def testing(n, alg, detector_set, num_detectors, threshold, individual):
+    detection = False
+    for i in range(0, num_detectors):
+        if alg == "NS" or alg == "RV":
+            distance = Euclidean_distance(n, individual, detector_set[i])
+            if distance <= threshold:
+                detection = True
+                break
+        else:
+            try:
+                truncated_detector = detector_set[i][0:n - 1]
+            except:
+                print(detector_set[i])
+                sys.exit()
+            distance = Euclidean_distance(n - 1, individual, truncated_detector)
+            if distance <= detector_set[i][n - 1]:
+                detection = True
+                break
+    return detection
+
+# get test sets
+self_testing = "self_testing.txt"
+self_location = get_location_of_self_testing(self_testing)
+non_self_testing = "non_self_testing.txt"
+non_self_location = get_location_of_non_self_testing(non_self_testing)
+
+if not os.path.exists(self_location):
+    print("\n*** error: {0} does not exist\n".format(self_location))
+    sys.exit()
+elif not os.path.exists(non_self_location):
+    print("\n*** error: {0} does not exist\n".format(non_self_location))
+    sys.exit()
+
+detector_point_length = int(dim) + 1
+actual_num_detectors = num_detectors
+original_num_detectors = intended_num_detectors
+
+f = open(self_location, "r")
+
+self_or_non_self = f.readline()
+if self_or_non_self != "Self\n":
+    print("\n*** error: the file {0} is not denoted as a Self-file\n".format(self_location))
+    f.close()
+    sys.exit()
+dim = f.readline()
+length_of_dim = len(dim)
+dim = dim[len("n = "):length_of_dim - 1]
+self_point_length = int(dim)
+num_points = f.readline()
+length_of_num_points = len(num_points)
+num_points = num_points[len("number of points = "):length_of_num_points - 1]
+self_num_points = int(num_points)
+
+list_of_points, error = read_points_only(f, self_point_length, self_num_points, self_location)
+Self_test = list_of_points[:]
+
+f.close()
+
+if error != []:
+    length = len(error)
+    for i in range(0, length):
+        print(error[i])
+    sys.exit()
+
+f = open(non_self_location, "r")
+
+self_or_non_self = f.readline()
+if self_or_non_self != "non-Self\n":
+    print("\n*** error: the file {0} is not denoted as a non-Self-file\n".format(non_self_location))
+    f.close()
+    sys.exit()
+dim = f.readline()
+length_of_dim = len(dim)
+dim = dim[len("n = "):length_of_dim - 1]
+non_self_point_length = int(dim)
+num_points = f.readline()
+length_of_num_points = len(num_points)
+num_points = num_points[len("number of points = "):length_of_num_points - 1]
+non_self_num_points = int(num_points)
+
+list_of_points, error = read_points_only(f, non_self_point_length, non_self_num_points, non_self_location)
+non_Self = list_of_points[:]
+
+f.close()
+
+if error != []:
+    length = len(error)
+    for i in range(0, length):
+        print(error[i])
+    sys.exit()
+
+# test fn
+def test(detectors):
+    print("\nevaluating detector set ...\n")
+
+    start_time = time.time()
+    
+    FP = 0
+    TN = 0
+    TP = 0
+    FN = 0
+    for i in range(0, self_num_points):
+        detection = testing(detector_point_length, alg_code, detectors, actual_num_detectors, threshold, Self_test[i])
+        if detection == True:
+            FP = FP + 1
+        else:
+            TN = TN + 1
+    for i in range(0, non_self_num_points):
+        detection = testing(detector_point_length, alg_code, detectors, actual_num_detectors, threshold, non_Self[i])
+        if detection == True:
+            TP = TP + 1
+        else:
+            FN = FN + 1
+
+    now_time = time.time()
+    testing_time = round(now_time - start_time, 1)
+    det_rate = round(100 * TP / (TP + FN), 2)
+    far = round(100 * FP / (FP + TN), 2)
+
+    return det_rate, far, testing_time
+
 #########################################################################################
 #### YOU SHOULDN'T HAVE TOUCHED *ANYTHING* UP UNTIL NOW APART FROM SUPPLYING VALUES  ####
 #### FOR 'username', 'alg_code', 'threshold' and 'num_detectors' AS REQUESTED ABOVE. ####
@@ -200,7 +337,7 @@ def v_detector(Self, c0, c1, r_self, intended_num_detectors):
 
             for d in D:
                 # if we have collision
-                if dist(x, d[0]) <= d[1]:
+                if dist(x, d[:-1]) <= d[-1]:
                     t0 += 1
                     if t0 >= (1 / (1-c0)):
                         # output D and terminate
@@ -214,7 +351,8 @@ def v_detector(Self, c0, c1, r_self, intended_num_detectors):
                 r = dst - r_self
         
         if r > r_self:
-            D.append([x, r])
+            x.append(r)
+            D.append(x)
         else:
             t1 += 1
 
@@ -224,13 +362,58 @@ def v_detector(Self, c0, c1, r_self, intended_num_detectors):
 
     return D
 
-detectors = v_detector(Self, c0, c1, threshold, intended_num_detectors)
+
+
+# ----------------- parameter tuning -----------------
+# detectors = v_detector(Self, c0, c1, threshold, intended_num_detectors)
+# det_rate, far, testing_time = test(detectors)
+
+# grid search to get params that minimize far and maximize det_rate
+# params to tune: c0, c1, threshold, intended_num_detectors
+best_det_rate = 0
+best_far = 100
+best_detectors = []
+
+best_c0 = 0.9999
+best_c1 = 0.9999
+best_threshold = threshold
+best_intended_num_detectors = intended_num_detectors
+
+for c0 in [0.999, 0.9999, 0.99999]:
+    for c1 in [0.999, 0.9999, 0.99999]:
+        for threshold in [0.01, 0.1, 0.5, 1, 2, 5, 10]:
+            # for intended_num_detectors in [100, 1000, 10000]:
+            detectors = v_detector(Self, c0, c1, threshold, intended_num_detectors)
+            det_rate, far, testing_time = test(detectors)
+            if det_rate > best_det_rate and far < best_far:
+                best_det_rate = det_rate
+                best_far = far
+                best_detectors = detectors
+                best_c0 = c0
+                best_c1 = c1
+                best_threshold = threshold
+
+
+detectors = best_detectors
+
+# print params
+print("c0: {0}, c1: {1}, threshold: {2}, intended_num_detectors: {3}".format(c0, c1, threshold, intended_num_detectors))
+
+# save to vars
+c0 = best_c0
+c1 = best_c1
+threshold = best_threshold
+# intended_num_detectors = best_intended_num_detectors
+
+
+
+# ------------------ reformatting ------------------
 
 # problem - detectors[0][2] being called later which doesn't exist (bc detectors[0] is [a,b,c],r)
-for i in range(len(detectors)):
-    d = detectors[i]
-    d = [d[0][0], d[0][1], d[0][2], d[1]] # d = [a,b,c,r] instead of [[a,b,c],r]
-    detectors[i] = d
+# for i in range(len(detectors)):
+#     d = detectors[i]
+#     d = [d[0][0], d[0][1], d[0][2], d[1]] # d = [a,b,c,r] instead of [[a,b,c],r]
+#     detectors[i] = d
 
 #########################################################
 #### YOU SHOULD HAVE NOW FINISHED ENTERING YOUR CODE ####
@@ -244,7 +427,7 @@ now_time = time.time()
 training_time = round(now_time - start_time, 1)
 
 timestamp = get_a_timestamp_for_an_output_file()
-detector_set_location = "detector_" + timestamp + ".txt"
+detector_set_location = "detector_TT_" + timestamp + ".txt"
 
 f = open(detector_set_location, "w")
 
@@ -279,6 +462,13 @@ print("detector set saved as {0}\n".format(detector_set_location))
 
 
 
+# TESTING
+print("This detector set was built by '{0}' using algorithm '{1}' on data of dimension {2}.".format(username, alg_code, self_point_length))
+print("The self-radius is {0} and the time to build was {1}.".format(threshold, training_time))
+print("From {0} test-individuals from Self and {1} test-individuals from non-Self:".format(self_num_points, non_self_num_points))
+print("   - detection rate   TP/(TP+FN) = {0}%".format(det_rate))
+print("   - false alarm rate FP/(FP+TN) = {0}%".format(far))
+print("   - elapsed testing time        = {0}".format(testing_time))
 
 
 
