@@ -152,21 +152,15 @@ def Euclidean_distance(n, first_individual, second_individual):
 def testing(n, alg, detector_set, num_detectors, threshold, individual):
     detection = False
     for i in range(0, num_detectors):
-        if alg == "NS" or alg == "RV":
-            distance = Euclidean_distance(n, individual, detector_set[i])
-            if distance <= threshold:
-                detection = True
-                break
-        else:
-            try:
-                truncated_detector = detector_set[i][0:n - 1]
-            except:
-                print(detector_set[i])
-                sys.exit()
-            distance = Euclidean_distance(n - 1, individual, truncated_detector)
-            if distance <= detector_set[i][n - 1]:
-                detection = True
-                break
+        try:
+            truncated_detector = detector_set[i][0:n - 1]
+        except:
+            print(detector_set[i])
+            sys.exit()
+        distance = Euclidean_distance(n - 1, individual, truncated_detector)
+        if distance <= detector_set[i][n - 1]:
+            detection = True
+            break
     return detection
 
 # get test sets
@@ -242,7 +236,7 @@ if error != []:
 
 # test fn
 def test(detectors):
-    print("\nevaluating detector set ...\n")
+    # print("\nevaluating detector set ...\n")
 
     start_time = time.time()
     
@@ -251,13 +245,13 @@ def test(detectors):
     TP = 0
     FN = 0
     for i in range(0, self_num_points):
-        detection = testing(detector_point_length, alg_code, detectors, actual_num_detectors, threshold, Self_test[i])
+        detection = testing(detector_point_length, alg_code, detectors, len(detectors), threshold, Self_test[i])
         if detection == True:
             FP = FP + 1
         else:
             TN = TN + 1
     for i in range(0, non_self_num_points):
-        detection = testing(detector_point_length, alg_code, detectors, actual_num_detectors, threshold, non_Self[i])
+        detection = testing(detector_point_length, alg_code, detectors, len(detectors), threshold, non_Self[i])
         if detection == True:
             TP = TP + 1
         else:
@@ -309,17 +303,20 @@ def test(detectors):
 #### NOW YOU CAN ENTER YOUR CODE BELOW ####
 ###########################################
 
+import numpy
+added_note = ""
+
 # algorithm: v-detector (S, c0, c1, threshold, intended_num_detectors)
 
 # parameters
-c0 = 0.9999 # expected coverage rate for detectors covering non-self
-c1 = 0.9999 # expected coverage rate for training set
+# c0 = 0.9999 # expected coverage rate for detectors covering non-self
+# c1 = 0.9999 # expected coverage rate for training set
 
 # define euclidean distance between 2 n-dim vectors
 def dist(x, y):
     return math.sqrt(sum([(x[i] - y[i])**2 for i in range(n)]))
 
-def v_detector(Self, c0, c1, r_self, intended_num_detectors):
+def v_detector(c0, c1, r_self, intended_num_detectors): # Self is constant in this case, so I've omitted it as parameter
     D = [] # detector set D
     t1 = 0
 
@@ -370,40 +367,96 @@ def v_detector(Self, c0, c1, r_self, intended_num_detectors):
 
 # grid search to get params that minimize far and maximize det_rate
 # params to tune: c0, c1, threshold, intended_num_detectors
-best_det_rate = 0
-best_far = 100
-best_detectors = []
+goodEnough = False
+sat_far = 10 # break if v and far less than this
+sat_det = 85 # break if ^ and det rate higher than this
+
+
+max_far = 8.5
+min_det = 80
+last_best_update = -1
 
 best_c0 = 0.9999
 best_c1 = 0.9999
 best_threshold = threshold
 best_intended_num_detectors = intended_num_detectors
 
-for c0 in [0.999, 0.9999, 0.99999]:
-    for c1 in [0.999, 0.9999, 0.99999]:
-        for threshold in [0.01, 0.1, 0.5, 1, 2, 5, 10]:
-            # for intended_num_detectors in [100, 1000, 10000]:
-            detectors = v_detector(Self, c0, c1, threshold, intended_num_detectors)
-            det_rate, far, testing_time = test(detectors)
-            if det_rate > best_det_rate and far < best_far:
-                best_det_rate = det_rate
-                best_far = far
-                best_detectors = detectors
-                best_c0 = c0
-                best_c1 = c1
-                best_threshold = threshold
+best_det_rate = 0
+best_far = 100
+best_detectors = []
 
+# uniformly dist values to iterate over
+Ns = numpy.random.randint(950, 1300, 2)
+# c0s = numpy.random.uniform(0.9995, 1, 3)
+c0s = [0.9999]
+c1s = [0.9999]
+# c1s = numpy.random.uniform(0.9995, 1, 3)
+thresholds = numpy.random.uniform(0.02, 0.03, 6)
+
+for N in Ns:
+    if goodEnough:
+        break
+    for c0 in c0s:
+        if goodEnough:
+            break
+        c0 = round(c0, 4)
+        for c1 in c1s:
+            if goodEnough:
+                break
+            c1 = round(c1, 4)
+            for threshold in thresholds:
+                threshold = round(threshold, 4)
+                print("\n***********")
+                print("Testing: c0: {0}, c1: {1}, threshold: {2}, N: {3}".format(c0, c1, threshold, N))
+                if goodEnough:
+                    break
+                it = 0
+                max_it = 5
+                while it < max_it: # repeat each parameter combo x times to account for randomness
+                    print('-----------------')
+                    print("Iteration: {0}".format(it))
+                    detectors = v_detector(c0, c1, threshold, N)
+                    det_rate, far, testing_time = test(detectors)
+                    print("det_rate: {0}, far: {1}".format(det_rate, far))
+
+                    if (det_rate > best_det_rate and far <= max_far) or (far < best_far and det_rate >= min_det):
+                        print("* NEW BEST *")
+                        best_det_rate = det_rate
+                        best_far = far
+                        best_detectors = detectors
+                        best_c0 = c0
+                        best_c1 = c1
+                        best_threshold = threshold
+                        best_N = N
+                        last_best_update = it
+                        if best_far < max_far: # if we've found a smaller far, update max_far
+                            # max_far = best_far + 0.1*best_far
+                            print("updated max_far to {0}".format(max_far))
+                        if best_det_rate > min_det:
+                            # min_det = best_det_rate - 0.1*best_det_rate
+                            print("updated min_det to {0}".format(min_det))
+                            
+
+                    if det_rate > sat_det and far < sat_far:
+                        goodEnough = True
+                        break
+                    # if updated best last round, try again to see for another improvement
+                    if (it == max_it - 1) and (it - last_best_update == 1):
+                        max_it+=1
+                    
+                    it += 1
 
 detectors = best_detectors
-
-# print params
-print("c0: {0}, c1: {1}, threshold: {2}, intended_num_detectors: {3}".format(c0, c1, threshold, intended_num_detectors))
 
 # save to vars
 c0 = best_c0
 c1 = best_c1
-threshold = best_threshold
-# intended_num_detectors = best_intended_num_detectors
+threshold = best_threshold # already in note
+intended_num_detectors = best_N # already in note
+
+added_note += "\ndet_rate: {0}, far: {1}".format(best_det_rate, best_far)
+added_note += "\nc0: {0}, c1: {1}".format(c0, c1)
+added_note += '\n'
 
 
 
@@ -442,6 +495,7 @@ else:
 num_detectors = len(detectors)
 f.write("number of detectors = {0} (from an intended number of {1})\n".format(num_detectors, intended_num_detectors))
 f.write("training time = {0}\n".format(training_time))
+f.write(added_note)
 detector_length = n
 if alg_code == "VD":
     detector_length = n + 1

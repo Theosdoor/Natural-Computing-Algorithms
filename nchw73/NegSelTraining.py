@@ -39,7 +39,7 @@ alg_code = "VD"
 #### ENTER THE THRESHOLD: IF YOU ARE IMPLEMENTING VDETECTOR THEN SET THE THRESHOLD AS YOUR CHOICE OF SELF-RADIUS ####
 #####################################################################################################################
 
-threshold = 0.017
+threshold = 0.0271
 
 ######################################################
 #### ENTER THE INTENDED SIZE OF YOUR DETECTOR SET ####
