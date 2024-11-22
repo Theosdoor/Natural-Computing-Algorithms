@@ -149,11 +149,11 @@ import numpy as np
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
 ##########################################################
 
-num_cyc = 30000
+num_cyc = 24000
 N = 50 # number of nests
 p = 0.6 # fraction of local flights to undertake
 q = 0.25 # fraction of nests to abandon
-alpha = 1 # scaling factor for Levy flights
+alpha = 0.4*n # scaling factor for Levy flights
 
 timed = True
 max_time = 9.9 # maximum time in seconds
@@ -170,7 +170,7 @@ sigma = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.ga
 ###########################################
 
 def fitness(point):
-    # minimise f, where f>100
+    # minimise f, where f<100
     # fitness must always be > 0
     return 100 + compute_f(point)
 
@@ -227,11 +227,13 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
 
     # main loop
     for t in range(num_cyc):
+        # alpha = alpha / (10*t+1)**0.5 # decrease alpha over time
+
         if timed and time.time() - start_t > max_time:
             print("Time limit reached")
             return min_f, minimum
         
-        if t % 1000 == 0:
+        if t % 2000 == 0:
             print("Cycle {0}, min_f: {1}".format(t, min_f))
             # print(minimum)
 
@@ -268,8 +270,9 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
         # abandon q fraction of worst nests
         abandoned_nests = sorted_indices[-int(q * N):]
         for k in abandoned_nests:
-            # generate new random nest to replace
+            # generate new random nest to replace TODO maybe not random?
             P[k] = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
+            P[k] = levy_flight(P[k], alpha) # levy flight from new nest
             fitnesses[k] = fitness(P[k])
 
             # update min_f if necessary
@@ -290,6 +293,7 @@ except:
     print(x)
     sys.exit()
 
+print(min_f-100)
 
 # try genetic algorithm with parameters for cuckoo search
 # tune parameters: N, p, q, alpha

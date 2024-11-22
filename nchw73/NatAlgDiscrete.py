@@ -32,13 +32,13 @@ alg_code = "CS"
 #### ENTER THE CODE FOR THE GRAPH PROBLEM YOU ARE OPTIMIZING ####
 #################################################################
 
-problem_code = "GP"
+problem_code = "GC"
 
 #############################################################
 #### ENTER THE DIGIT OF THE INPUT GRAPH FILE (A, B OR C) ####
 #############################################################
 
-graph_digit = "A"
+graph_digit = "B"
 
 ################################################################
 #### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
@@ -225,7 +225,7 @@ start_time = time.time()
 #   - 'num_cyc' = number of cycles to iterate           int
 #   - 'N' = number of bats                              int
 #   - 'sigma' = scaling factor                          float or int
-#   - 'f_min' = minimum frequency                       float or int
+#   - 'f_min' = best_colouring frequency                       float or int
 #   - 'f_max' = maximum frequency                       float or int
 
 # These are reserved variables and need to be treated as such, i.e., use these names for these
@@ -258,43 +258,154 @@ start_time = time.time()
 
 
 
-
-
 ##########################################################
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
 ##########################################################
 
 
-
-
-
-
-
-
+n = v # if each vertex is a dimension
+num_cyc = 10000
+N = 50 # number of nests
+p = 0.6 # fraction of local flights to undertake
+q = 0.25 # fraction of nests to abandon
+alpha = 0.4*n # scaling factor for Levy flights
+beta = 1.5 # parameter for Mantegna's algorithm
 
 ###########################################
 #### NOW INCLUDE THE REST OF YOUR CODE ####
 ###########################################
+timed = True
+max_time = 600 # maximum time in seconds (60s)
+start_t = time.time()
+
+# for Mantegna
+sigma = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
+
+best_colouring = []
+min_conflicts = float('inf')
+
+def fitness(colouring):
+    # minimise number of conflicts
+    # currently fitness = number of conflicts (>0)
+    # proper colouring iff conflicts = 0
+
+    # (same calculation as in error checking)
+    conflicts = 0
+    for i in range(v):
+        for j in range(i+1, v):
+            if matrix[i][j] == 1 and colouring[i] == colouring[j]:
+                conflicts += 1
+    return conflicts
 
 
+def levy_flight(colouring, alpha):
+    '''
+    Levy Flight using Mantegna's algorithm
+    '''
+    new = colouring[:]
 
+    # U sampled from normal dist N(0, sigma)
+    U = random.gauss(0, sigma)
 
+    # V sampled from normal dist N(0, 1)
+    V = random.gauss(0, 1)
 
+    # Levy flight - pick M vertices to recolour using levy dist
+    step = abs(U / abs(V) ** (1 / beta))
+    M = int(alpha * step)
+    # NOTE may end up recolouring same ones multiple times
+    
+    # recolour M random vertices randomly
+    for _ in range(M):
+        vtx = random.randint(0, n-1) # pick random vertex
+        new[vtx] = random.randint(1, colours) # randomly recolour vertex
 
+    return new
 
+def local_flight(colouring):
+    '''
+    Local search - visit local near neighbours.
 
+    Randomly select a vertex and recolour it
+    '''
+    new = colouring[:]
+    vtx = random.randint(0, n-1)
+    new[vtx] = random.randint(1, colours)
+        
+    return new
 
+# main function
+# cuckoo_search(n, N, num_cyc, p, q, alpha, beta)
+def cuckoo_search(N, num_cyc, p, q, alpha):
+    # randomly generate population of colourings
+    # each nest is a random (im)proper colouring
+    P = []
+    for i in range(N):
+        P.append([random.randint(1, colours) for _ in range(n)])
 
+    # compute fitness of each nest
+    fitnesses = [fitness(P[i]) for i in range(N)]
+    min_conflicts = min(fitnesses)
+    best_colouring = P[fitnesses.index(min_conflicts)]
 
+    # main loop
+    for t in range(num_cyc):
+        if timed and time.time() - start_t > max_time:
+            print("Time limit reached")
+            return min_conflicts, best_colouring
+        
+        if t % 50 == 0:
+            print("Cycle {0}, min_conflicts: {1}".format(t, min_conflicts))
 
+        # levy flights from each nest
+        for i in range(N):
+            # undertake Levy flight from x_i to y_i
+            y = levy_flight(P[i], alpha) # y_i
+            if fitness(y) < fitnesses[i]:
+                # replace x_i with y_i if y_i is better
+                P[i] = y
+                fitnesses[i] = fitness(y)
 
+        # local search with probability p
+        local_flights = random.sample(range(N), int(p * N)) # select p fraction of nests
+        for j in local_flights:
+            # undertake local flight
+            y = local_flight(P[j])
+            if fitness(y) < fitnesses[j]:
+                P[j] = y
+                fitnesses[j] = fitness(y)
 
+            if timed and time.time() - start_t > max_time:
+                print("Time limit reached")
+                return min_conflicts, best_colouring
 
+        # rank nests by fitness
+        sorted_indices = sorted(range(N), key=lambda x: fitnesses[x])
 
+        # update min_conflicts if necessary
+        if fitnesses[sorted_indices[0]] < min_conflicts:
+            min_conflicts = fitnesses[sorted_indices[0]]
+            best_colouring = P[sorted_indices[0]]
+        
+        # abandon q fraction of worst nests & replace
+        abandoned_nests = sorted_indices[-int(q * N):]
+        for k in abandoned_nests:
+            # generate new random nest (colouring) to replace
+            P[k] = [random.randint(1, colours) for _ in range(n)]
+            fitnesses[k] = fitness(P[k])
 
+            # update min_conflicts if necessary
+            if fitnesses[k] < min_conflicts:
+                min_conflicts = fitnesses[k]
+                best_colouring = P[k]
+            
+            if timed and time.time() - start_t > max_time:
+                print("Time limit reached")
+                return min_conflicts, best_colouring
+        
+    return min_conflicts, best_colouring
 
-
-
+conflicts, colouring = cuckoo_search(N, num_cyc, p, q, alpha)
 
 
 

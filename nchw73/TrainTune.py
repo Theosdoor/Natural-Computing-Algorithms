@@ -376,7 +376,7 @@ sat_far = 10 # break if v and far less than this
 sat_det = 85 # break if ^ and det rate higher than this
 
 
-max_far = 8.5
+max_far = 6
 min_det = 80
 last_best_update = -1
 
