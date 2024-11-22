@@ -25,7 +25,7 @@ username = "nchw73"
 #### ENTER THE CODE FOR THE ALGORITHM YOU ARE IMPLEMENTING ####
 ###############################################################
 
-alg_code = "AB"
+alg_code = "WO"
 
 ################################################################
 #### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
@@ -143,130 +143,30 @@ start_time = time.time()
 #### FIRST IMPORT ANY MODULES IMMEDIATELY BELOW ####
 ####################################################
 
-
-
-
-
-
+import numpy
 
 ##########################################################
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
 ##########################################################
 
-num_cyc = 30000 # iterations
-N = 100 # employed bees
-M = 100 # onlooker bees
-lambbda = 0.5 # limit threshold
+num_cyc = 10000
+N = 10 # number of whales
+b = 0.5 # spiral constant
 
-limit = [0] * N
-
+min_f = 0 # keep track of minimum f value found throughout
 
 
 ###########################################
 #### NOW INCLUDE THE REST OF YOUR CODE ####
 ###########################################
 
-def near_neighbour(x, y, b):
-    isValid = False
-    while not isValid:
-        nn = x.copy()
-        phi = random.uniform(-1, 1) # random scalar
-
-        nn[b] = x[b] + phi*(x[b] - y[b])
-
-        # if nn within range, its valid
-        if nn[b] >= min_range[b] and nn[b] <= max_range[b]:
-            isValid = True
-
-    return nn
-
-# high fitness ==> low f value
-# def get_fitnesses(P):
-#     # get fitness of each point in P
-#     fs = [compute_f(p) for p in P]
-#     tau = max(fs) + 0.001
-#     return [(tau - f) for f in fs], tau
-
-def get_fitness(p):
+def fitness(point):
     # minimise f
     # fitness must always be > 0
-    return 1/compute_f(p)
+    return 100 + compute_f(point)
 
-# randomly generate food sources (n dim vectors)
-sources = []
-for i in range(N): # for each employed bee
-    source = []
-    for j in range(n): # create source
-        source.append(random.uniform(min_range[j], max_range[j])) # add component
-    sources.append(source) # add to sources
 
-# compute fitnesses
-# fitnesses, tau = get_fitnesses(sources)
-# best_fitness = max(fitnesses)
-# best_source = sources[fitnesses.index(best_fitness)]
-# best_source_tau = tau
 
-fitnesses = [get_fitness(p) for p in sources]
-best_fitness = max(fitnesses)
-best_source = sources[fitnesses.index(best_fitness)]
-
-# current best
-min_f = compute_f(best_source)
-minimum = best_source
-temp_best = best_source
-temp_best_fitness = best_fitness
-
-for t in range(num_cyc): # for each cycle
-    if t % 1000 == 0:
-        print('\ntemp_best', temp_best, '\nf =', compute_f(temp_best))
-
-    for i in range(N+M): # for each bee
-        if i < N:
-            k = i
-        else:
-            k = random.randint(0, N-1)
-
-        b = random.randint(0, n-1) # random dimension
-        j = random.randint(0, N-1) # random source
-        while j == k:
-            j = random.randint(0, N-1)
-
-        # compute near neighbour
-        nn = near_neighbour(sources[k], sources[j], b)
-        if get_fitness(nn) > get_fitness(sources[k]): # if nn is better than current source
-            sources[k] = nn
-            limit[k] = 0
-        else:
-            limit[k] += 1
-        
-        for i in range(N): # for each employed bee
-            if limit[i] > lambbda: # if we've hung around i too long, abandon
-                # randomly generate food source x_i and set limit[i] = 0
-                for j in range(n):
-                    sources[i][j] = random.uniform(min_range[j], max_range[j])
-                limit[i] = 0
-            
-        # recompute fitnesses
-        # fitnesses, tau = get_fitnesses(sources)
-    
-    # if tau different from that used to calulate best_fitness, recalculate best_fitness
-    # if tau != best_source_tau:
-    #     best_fitness = tau - compute_f(best_source)
-    #     best_source_tau = tau
-
-    # update best fitness
-    fitnesses = [get_fitness(p) for p in sources]
-    temp_best_fitness = max(fitnesses)
-    temp_best = sources[fitnesses.index(temp_best_fitness)]
-    if temp_best_fitness > best_fitness:
-        best_fitness = max(fitnesses)
-        best_source = sources[fitnesses.index(best_fitness)]
-
-        min_f = compute_f(best_source)
-        minimum = best_source
-        print("\n*** NEW BEST ***")
-        print('best', best_source, '\nf =', compute_f(best_source), ' min f =', min_f)
-        # print('\n')
 
 #########################################################
 #### YOU SHOULD HAVE NOW FINISHED ENTERING YOUR CODE ####

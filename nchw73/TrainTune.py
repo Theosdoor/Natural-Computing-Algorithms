@@ -305,6 +305,7 @@ def test(detectors):
 
 import numpy
 added_note = ""
+time_limit = 12 # should be 15 in total training and testing
 
 # algorithm: v-detector (S, c0, c1, threshold, intended_num_detectors)
 
@@ -319,11 +320,14 @@ def dist(x, y):
 def v_detector(c0, c1, r_self, intended_num_detectors): # Self is constant in this case, so I've omitted it as parameter
     D = [] # detector set D
     t1 = 0
+    start_t = time.time()
 
     # while there are less than n valid detectors
     while len(D) < intended_num_detectors: 
         t0 = 0
         phase_one_flag = False
+        if time.time() - start_t > time_limit:
+            return D
         
         while not phase_one_flag:
             # generate a random individual x from [0, 1]^n, set r = inf, and set phase_one_flag = "Successful"
@@ -386,12 +390,12 @@ best_far = 100
 best_detectors = []
 
 # uniformly dist values to iterate over
-Ns = numpy.random.randint(950, 1300, 2)
+Ns = [1000]#numpy.random.randint(950, 1300, 2)
 # c0s = numpy.random.uniform(0.9995, 1, 3)
 c0s = [0.9999]
 c1s = [0.9999]
 # c1s = numpy.random.uniform(0.9995, 1, 3)
-thresholds = numpy.random.uniform(0.02, 0.03, 6)
+thresholds = numpy.random.uniform(0.02, 0.03, 10)
 
 for N in Ns:
     if goodEnough:

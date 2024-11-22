@@ -143,25 +143,26 @@ start_time = time.time()
 #### FIRST IMPORT ANY MODULES IMMEDIATELY BELOW ####
 ####################################################
 
-
-
-
-
+import numpy as np
 
 ##########################################################
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
 ##########################################################
 
-num_cyc = 10000
-N = 100 # number of nests
-p = 0.25 # fraction of local flights to undertake
+num_cyc = 30000
+N = 50 # number of nests
+p = 0.6 # fraction of local flights to undertake
 q = 0.25 # fraction of nests to abandon
-alpha = 0.5 # scaling factor for Levy flights
-beta = 0.5 # parameter for Mantegna's algorithm
+alpha = 1 # scaling factor for Levy flights
+
+timed = True
+max_time = 9.9 # maximum time in seconds
+start_t = time.time()
 
 min_f = 0 # keep track of minimum f value found throughout
 
 # for Mantegna
+beta = 1.5
 sigma = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
 
 ###########################################
@@ -169,9 +170,11 @@ sigma = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.ga
 ###########################################
 
 def fitness(point):
-    return compute_f(point)
+    # minimise f, where f>100
+    # fitness must always be > 0
+    return 100 + compute_f(point)
 
-def levy_flight(point):
+def levy_flight(point, alpha):
     # Mantegna's algorithm
     isValid = False
     while not isValid:
@@ -209,54 +212,112 @@ def local_flight(point):
                 isValid = False
     return new_point
 
-# randomly generate population of nests
-P = []
-for i in range(N):
-    P.append([random.uniform(min_range[j], max_range[j]) for j in range(n)])
-
-# compute fitness of each nest
-fitnesses = [fitness(P[i]) for i in range(N)]
-min_f = min(fitnesses)
-minimum = P[fitnesses.index(min_f)]
-
-# main loop
-for t in range(num_cyc):
-    if t % 100 == 0:
-        print("Cycle {0}, min_f: {1}".format(t, min_f))
+# main function
+# cuckoo_search(n, N, num_cyc, p, q, alpha, beta)
+def cuckoo_search(N, num_cyc, p, q, alpha):
+    # randomly generate population of nests
+    P = []
     for i in range(N):
-        # undertake Levy flight from x_i to y_i
-        y = levy_flight(P[i])
-        if fitness(y) < fitnesses[i]:
-            P[i] = y
-            fitnesses[i] = fitness(y)
+        P.append([random.uniform(min_range[j], max_range[j]) for j in range(n)])
 
-    # select fraction p of nests
-    local_flights = random.sample(range(N), int(p * N))
-    for j in local_flights:
-        # undertake local flight
-        y = local_flight(P[j])
-        if fitness(y) < fitnesses[j]:
-            P[j] = y
-            fitnesses[j] = fitness(y)
+    # compute fitness of each nest
+    fitnesses = [fitness(P[i]) for i in range(N)]
+    min_f = min(fitnesses)
+    minimum = P[fitnesses.index(min_f)]
 
-    # rank nests by fitness
-    sorted_indices = sorted(range(N), key=lambda x: fitnesses[x])
+    # main loop
+    for t in range(num_cyc):
+        if timed and time.time() - start_t > max_time:
+            print("Time limit reached")
+            return min_f, minimum
+        
+        if t % 1000 == 0:
+            print("Cycle {0}, min_f: {1}".format(t, min_f))
+            # print(minimum)
 
-    # update min_f if necessary
-    if fitnesses[sorted_indices[0]] < min_f:
-        min_f = fitnesses[sorted_indices[0]]
-        minimum = P[sorted_indices[0]]
+        # levy flights from each nest
+        for i in range(N):
+            # undertake Levy flight from x_i to y_i
+            y = levy_flight(P[i], alpha) # y_i
+            if fitness(y) < fitnesses[i]:
+                # replace x_i with y_i if y_i is better
+                P[i] = y
+                fitnesses[i] = fitness(y)
 
-    # select fraction q of nests to abandon
-    abandoned_nests = sorted_indices[:int(q * N)]
-    for k in abandoned_nests:
-        P[k] = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
-        fitnesses[k] = fitness(P[k])
+        # local search with probability p
+        local_flights = random.sample(range(N), int(p * N))
+        for j in local_flights:
+            # undertake local flight
+            y = local_flight(P[j])
+            if fitness(y) < fitnesses[j]:
+                P[j] = y
+                fitnesses[j] = fitness(y)
+
+            if timed and time.time() - start_t > max_time:
+                print("Time limit reached")
+                return min_f, minimum
+
+        # rank nests by fitness
+        sorted_indices = sorted(range(N), key=lambda x: fitnesses[x])
 
         # update min_f if necessary
-        if fitnesses[k] < min_f:
-            min_f = fitnesses[k]
-            minimum = P[k]
+        if fitnesses[sorted_indices[0]] < min_f:
+            min_f = fitnesses[sorted_indices[0]]
+            minimum = P[sorted_indices[0]]
+
+        # abandon q fraction of worst nests
+        abandoned_nests = sorted_indices[-int(q * N):]
+        for k in abandoned_nests:
+            # generate new random nest to replace
+            P[k] = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
+            fitnesses[k] = fitness(P[k])
+
+            # update min_f if necessary
+            if fitnesses[k] < min_f:
+                min_f = fitnesses[k]
+                minimum = P[k]
+            
+            if timed and time.time() - start_t > max_time:
+                print("Time limit reached")
+                return min_f, minimum
+        
+    return min_f, minimum
+
+x = cuckoo_search(N, num_cyc, p, q, alpha)
+try:
+    min_f, minimum = x
+except:
+    print(x)
+    sys.exit()
+
+
+# try genetic algorithm with parameters for cuckoo search
+# tune parameters: N, p, q, alpha
+
+
+# population of parameter combos
+# P_size = 100
+# P = []
+# for i in range(P_size):
+#     test_N = np.random.randint(10, 100)
+#     test_p = np.random.uniform(0.1, 1)
+#     test_q = np.random.uniform(0.1, 1)
+#     test_alpha = np.random.uniform(0.5, 2)
+#     test = [test_N, test_p, test_q, test_alpha]
+
+#     while test in P:
+#         # ensure no duplicates
+#         test_N = np.random.randint(10, 100)
+#         test_p = np.random.uniform(0.1, 1)
+#         test_q = np.random.uniform(0.1, 1)
+#         test_alpha = np.random.uniform(0.5, 2)
+#         test = [test_N, test_p, test_q, test_alpha]
+
+#     P.append(test)
+
+
+
+
 
 
 #########################################################
