@@ -38,7 +38,7 @@ problem_code = "GC"
 #### ENTER THE DIGIT OF THE INPUT GRAPH FILE (A, B OR C) ####
 #############################################################
 
-graph_digit = "B"
+graph_digit = "A"
 
 ################################################################
 #### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
@@ -274,8 +274,8 @@ beta = 1.5 # parameter for Mantegna's algorithm
 ###########################################
 #### NOW INCLUDE THE REST OF YOUR CODE ####
 ###########################################
-timed = True
-max_time = 600 # maximum time in seconds (60s)
+timed = False
+max_time = 59 # maximum time in seconds (60s)
 start_t = time.time()
 
 # for Mantegna
@@ -386,6 +386,9 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
         if fitnesses[sorted_indices[0]] < min_conflicts:
             min_conflicts = fitnesses[sorted_indices[0]]
             best_colouring = P[sorted_indices[0]]
+
+            if min_conflicts == 0:
+                return min_conflicts, best_colouring
         
         # abandon q fraction of worst nests & replace
         abandoned_nests = sorted_indices[-int(q * N):]
@@ -398,6 +401,9 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
             if fitnesses[k] < min_conflicts:
                 min_conflicts = fitnesses[k]
                 best_colouring = P[k]
+
+                if min_conflicts == 0:
+                    return min_conflicts, best_colouring
             
             if timed and time.time() - start_t > max_time:
                 print("Time limit reached")
@@ -406,7 +412,7 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
     return min_conflicts, best_colouring
 
 conflicts, colouring = cuckoo_search(N, num_cyc, p, q, alpha)
-
+print("\nFinal conflicts: {0}\n".format(conflicts))
 
 
 #########################################################

@@ -310,12 +310,11 @@ time_limit = float('inf') # should be 15 in total training and testing
 # algorithm: v-detector (S, c0, c1, threshold, intended_num_detectors)
 
 # parameters
-# alpha = c0/c1
 # c0 = 0.9999 # expected coverage rate for detectors covering non-self
 # c1 = 0.9999 # expected coverage rate for training set
 
 p = 0.5 # detector coverage 
-sample_size = max(5/p, 5/(1-p))
+sample_size = max(5/p, 5/(1-p))+1
 
 # define euclidean distance between 2 n-dim vectors
 def dist(x, y):
