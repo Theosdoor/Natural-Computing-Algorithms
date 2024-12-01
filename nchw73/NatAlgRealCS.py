@@ -223,7 +223,7 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
     # compute fitness of each nest
     fitnesses = [fitness(P[i]) for i in range(N)]
     min_f = min(fitnesses)
-    minimum = P[fitnesses.index(min_f)]
+    minima = [P[fitnesses.index(min_f)]] # list of minima
 
     # main loop
     for t in range(num_cyc):
@@ -231,11 +231,11 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
 
         if timed and time.time() - start_t > max_time:
             print("Time limit reached")
-            return min_f, minimum
+            return min_f, minima
         
         if t % 2000 == 0:
             print("Cycle {0}, min_f: {1}".format(t, min_f))
-            # print(minimum)
+            print(minima)
 
         # levy flights from each nest
         for i in range(N):
@@ -257,15 +257,19 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
 
             if timed and time.time() - start_t > max_time:
                 print("Time limit reached")
-                return min_f, minimum
+                return min_f, minima
 
         # rank nests by fitness
         sorted_indices = sorted(range(N), key=lambda x: fitnesses[x])
 
-        # update min_f if necessary
+        # update min_f and minima if necessary
         if fitnesses[sorted_indices[0]] < min_f:
             min_f = fitnesses[sorted_indices[0]]
-            minimum = P[sorted_indices[0]]
+            for i in range(1, len(sorted_indices)):
+                if fitnesses[sorted_indices[i]] == min_f:
+                    minima.append(P[sorted_indices[i]])
+                else:
+                    break
 
         # abandon q fraction of worst nests
         abandoned_nests = sorted_indices[-int(q * N):]
@@ -278,17 +282,20 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
             # update min_f if necessary
             if fitnesses[k] < min_f:
                 min_f = fitnesses[k]
-                minimum = P[k]
+                minima = [P[k]] # reset minima
+            elif fitnesses[k] == min_f:
+                minima.append(P[k])
             
             if timed and time.time() - start_t > max_time:
                 print("Time limit reached")
-                return min_f, minimum
+                return min_f, minima
         
-    return min_f, minimum
+    return min_f, minima
 
 x = cuckoo_search(N, num_cyc, p, q, alpha)
 try:
-    min_f, minimum = x
+    min_f, minima = x
+    minimum = minima[0]
 except:
     print(x)
     sys.exit()

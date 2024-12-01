@@ -32,7 +32,7 @@ alg_code = "CS"
 #### ENTER THE CODE FOR THE GRAPH PROBLEM YOU ARE OPTIMIZING ####
 #################################################################
 
-problem_code = "GC"
+problem_code = "GP"
 
 #############################################################
 #### ENTER THE DIGIT OF THE INPUT GRAPH FILE (A, B OR C) ####
@@ -281,8 +281,38 @@ start_t = time.time()
 # for Mantegna
 sigma = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
 
+class Vertex:
+    def __init__(self, id):
+        self.id = id
+        self.colour = random.randint(1, colours) # random initial colour
+        self.neighbours = []
+        self.available_colours = [i for i in range(1, colours+1)] # 1 - 40
+        self.conflicts = 0
+
+        # init neighbours
+        for i in range(v):
+            if matrix[id][i] == 1:
+                self.neighbours.append(i)
+
+    def recolour(self):
+        self.colour = random.choice(self.available_colours)
+
+    def update_availble(self):
+        self.available_colours = [i for i in range(1, colours+1)] # reset available colours
+        for n in self.neighbours:
+            if vertices[n].colour in self.available_colours:
+                self.available_colours.remove(vertices[n].colour)
+
+    def update_conflicts(self):
+        self.conflicts = 0
+        for n in self.neighbours:
+            if vertices[n].colour == self.colour:
+                self.conflicts += 1
+
+
 best_colouring = []
 min_conflicts = float('inf')
+vertices = [Vertex(i) for i in range(v)]
 
 def fitness(colouring):
     # minimise number of conflicts

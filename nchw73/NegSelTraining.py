@@ -171,6 +171,7 @@ intended_num_detectors = num_detectors
 ###########################################
 #### NOW YOU CAN ENTER YOUR CODE BELOW ####
 ###########################################
+time_limit = 13 # should be 15 in total training and testing
 
 # algorithm: v-detector (S, c0, c1, threshold, intended_num_detectors)
 
@@ -182,14 +183,17 @@ c1 = 0.9999 # expected coverage rate for training set
 def dist(x, y):
     return math.sqrt(sum([(x[i] - y[i])**2 for i in range(n)]))
 
-def v_detector(Self, c0, c1, r_self, intended_num_detectors):
+def v_detector(c0, c1, r_self, intended_num_detectors): # Self is constant in this case, so I've omitted it as parameter
     D = [] # detector set D
     t1 = 0
+    start_t = time.time()
 
     # while there are less than n valid detectors
     while len(D) < intended_num_detectors: 
         t0 = 0
         phase_one_flag = False
+        if time.time() - start_t > time_limit:
+            return D
         
         while not phase_one_flag:
             # generate a random individual x from [0, 1]^n, set r = inf, and set phase_one_flag = "Successful"
@@ -200,9 +204,9 @@ def v_detector(Self, c0, c1, r_self, intended_num_detectors):
 
             for d in D:
                 # if we have collision
-                if dist(x, d[0]) <= d[1]:
+                if dist(x, d[:-1]) <= d[-1]:
                     t0 += 1
-                    if t0 >= (1 / (1-c0)):
+                    if t0 >= (1 / (1-c0)): # m = 1 / (1-c0)
                         # output D and terminate
                         return D
                     phase_one_flag = False
@@ -210,11 +214,12 @@ def v_detector(Self, c0, c1, r_self, intended_num_detectors):
 
         for s in Self: # for every point in training set
             dst = dist(x, s)
-            if dst - r_self < r:
+            if dst - r_self < r: 
                 r = dst - r_self
         
         if r > r_self:
-            D.append([x, r])
+            x.append(r)
+            D.append(x)
         else:
             t1 += 1
 
@@ -224,13 +229,8 @@ def v_detector(Self, c0, c1, r_self, intended_num_detectors):
 
     return D
 
-detectors = v_detector(Self, c0, c1, threshold, intended_num_detectors)
+detectors = v_detector(c0, c1, threshold, intended_num_detectors)
 
-# problem - detectors[0][2] being called later which doesn't exist (bc detectors[0] is [a,b,c],r)
-for i in range(len(detectors)):
-    d = detectors[i]
-    d = [d[0][0], d[0][1], d[0][2], d[1]] # d = [a,b,c,r] instead of [[a,b,c],r]
-    detectors[i] = d
 
 #########################################################
 #### YOU SHOULD HAVE NOW FINISHED ENTERING YOUR CODE ####
