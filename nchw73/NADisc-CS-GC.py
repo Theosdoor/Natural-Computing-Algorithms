@@ -38,7 +38,7 @@ problem_code = "GC"
 #### ENTER THE DIGIT OF THE INPUT GRAPH FILE (A, B OR C) ####
 #############################################################
 
-graph_digit = "A"
+graph_digit = "C"
 
 ################################################################
 #### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
@@ -312,7 +312,7 @@ class Vertex:
 
 best_colouring = []
 min_conflicts = float('inf')
-vertices = [Vertex(i) for i in range(v)]
+# vertices = [Vertex(i) for i in range(v)]
 
 def fitness(colouring):
     # minimise number of conflicts
@@ -327,8 +327,35 @@ def fitness(colouring):
                 conflicts += 1
     return conflicts
 
+def get_vertex_conflicts(vtx):
+    '''
+    vtx is integer between 1 and v
+    '''
+    conflicts = 0
+    for i in range(v):
+        if matrix[vtx][i] == 1 and colouring[vtx] == colouring[i]:
+            conflicts += 1
+    return conflicts
 
-def levy_flight(colouring, alpha):
+def greedy_colouring():
+    '''
+    Greedy colouring algorithm
+    '''
+    # NOTE ENHANCED
+    colouring = [0] * v
+    for vtx in range(v):
+        available_colours = [True] * (colours + 1)
+        for i in range(v):
+            if matrix[vtx][i] == 1 and colouring[i] != 0:
+                available_colours[colouring[i]] = False
+        for colour in range(1, colours + 1):
+            if available_colours[colour]:
+                colouring[vtx] = colour
+                break
+    return colouring
+
+
+def levy_flight(colouring, best, alpha):
     '''
     Levy Flight using Mantegna's algorithm
     '''
@@ -348,11 +375,15 @@ def levy_flight(colouring, alpha):
     # recolour M random vertices randomly
     for _ in range(M):
         vtx = random.randint(0, n-1) # pick random vertex
-        new[vtx] = random.randint(1, colours) # randomly recolour vertex
+        p = random.random()
+        if p < 0.5: # NOTE ENHANCED
+            new[vtx] = random.randint(1, colours) # randomly recolour vertex
+        else:
+            new[vtx] = best[vtx] # recolour vertex with best colouring
 
     return new
 
-def local_flight(colouring):
+def local_flight(colouring, best):
     '''
     Local search - visit local near neighbours.
 
@@ -360,7 +391,11 @@ def local_flight(colouring):
     '''
     new = colouring[:]
     vtx = random.randint(0, n-1)
-    new[vtx] = random.randint(1, colours)
+    p = random.random()
+    if p < 0.5: # NOTE ENHANCED
+        new[vtx] = random.randint(1, colours)
+    else:
+        new[vtx] = best[vtx]
         
     return new
 
@@ -371,7 +406,11 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
     # each nest is a random (im)proper colouring
     P = []
     for i in range(N):
-        P.append([random.randint(1, colours) for _ in range(n)])
+        p = random.random()
+        if p < 0.3:
+            P.append(greedy_colouring())
+        else:
+            P.append([random.randint(1, colours) for _ in range(n)])
 
     # compute fitness of each nest
     fitnesses = [fitness(P[i]) for i in range(N)]
@@ -390,7 +429,7 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
         # levy flights from each nest
         for i in range(N):
             # undertake Levy flight from x_i to y_i
-            y = levy_flight(P[i], alpha) # y_i
+            y = levy_flight(P[i], best_colouring, alpha) # y_i
             if fitness(y) < fitnesses[i]:
                 # replace x_i with y_i if y_i is better
                 P[i] = y
@@ -400,7 +439,7 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
         local_flights = random.sample(range(N), int(p * N)) # select p fraction of nests
         for j in local_flights:
             # undertake local flight
-            y = local_flight(P[j])
+            y = local_flight(P[j], best_colouring)
             if fitness(y) < fitnesses[j]:
                 P[j] = y
                 fitnesses[j] = fitness(y)

@@ -38,7 +38,7 @@ problem_code = "GP"
 #### ENTER THE DIGIT OF THE INPUT GRAPH FILE (A, B OR C) ####
 #############################################################
 
-graph_digit = "A"
+graph_digit = "B"
 
 ################################################################
 #### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
@@ -256,12 +256,12 @@ start_time = time.time()
 #### FIRST IMPORT ANY MODULES IMMEDIATELY BELOW ####
 ####################################################
 
-
+import numpy
 
 ##########################################################
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
 ##########################################################
-
+target_size = v // sets_in_partition # target size of each partition set (aim for equally balanced sets)
 
 n = v # if each vertex is a dimension
 num_cyc = 10000
@@ -279,113 +279,111 @@ max_time = 59 # maximum time in seconds (60s)
 start_t = time.time()
 
 # for Mantegna
-sigma = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
+sigma_sq = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
 
-class Vertex:
-    def __init__(self, id):
-        self.id = id
-        self.colour = random.randint(1, colours) # random initial colour
-        self.neighbours = []
-        self.available_colours = [i for i in range(1, colours+1)] # 1 - 40
-        self.conflicts = 0
-
-        # init neighbours
-        for i in range(v):
-            if matrix[id][i] == 1:
-                self.neighbours.append(i)
-
-    def recolour(self):
-        self.colour = random.choice(self.available_colours)
-
-    def update_availble(self):
-        self.available_colours = [i for i in range(1, colours+1)] # reset available colours
-        for n in self.neighbours:
-            if vertices[n].colour in self.available_colours:
-                self.available_colours.remove(vertices[n].colour)
-
-    def update_conflicts(self):
-        self.conflicts = 0
-        for n in self.neighbours:
-            if vertices[n].colour == self.colour:
-                self.conflicts += 1
-
-
-best_colouring = []
-min_conflicts = float('inf')
-vertices = [Vertex(i) for i in range(v)]
-
-def fitness(colouring):
-    # minimise number of conflicts
-    # currently fitness = number of conflicts (>0)
-    # proper colouring iff conflicts = 0
-
-    # (same calculation as in error checking)
+def get_conflicts(partition):
+    '''
+    Get number of conflicts in partition
+    '''
     conflicts = 0
     for i in range(v):
         for j in range(i+1, v):
-            if matrix[i][j] == 1 and colouring[i] == colouring[j]:
+            if matrix[i][j] == 1 and partition[i] != partition[j]:
                 conflicts += 1
     return conflicts
 
+def get_set_sizes(partition):
+    '''
+    Get number of vertices (i.e. size) of each set in the given partition
+    '''
+    set_sizes = [0] * sets_in_partition
+    for i in range(v):
+        set_sizes[partition[i]-1] += 1 # NOTE: partition sets are 1-indexed, hence -1 in index
+    return set_sizes
 
-def levy_flight(colouring, alpha):
+def fitness(partition):
+    '''
+    Fitness function to minimise number of conflcits, and enforce roughly equal set sizes.
+    Fitness = 0 is optimal.
+    '''
+    fitness = 0
+    penalty_per_vertex = 6
+
+    # penalise partitions where theyre not (roughly) equally sized
+    set_sizes = get_set_sizes(partition)
+    for size in set_sizes:
+        if size > target_size:
+            # add penalty to fitness for each vertex over target_size
+            penalty = penalty_per_vertex * (size - target_size)
+            fitness += penalty
+    
+    # penalise partitions with conflicts
+    fitness += get_conflicts(partition)
+    return fitness
+
+
+def levy_flight(partition, alpha):
     '''
     Levy Flight using Mantegna's algorithm
     '''
-    new = colouring[:]
+    new = partition[:]
 
-    # U sampled from normal dist N(0, sigma)
-    U = random.gauss(0, sigma)
+    # U sampled from normal dist N(0, sigma_sq)
+    U = random.gauss(0, sigma_sq)
 
     # V sampled from normal dist N(0, 1)
     V = random.gauss(0, 1)
 
-    # Levy flight - pick M vertices to recolour using levy dist
+    # Levy flight - pick M vertices using levy dist
     step = abs(U / abs(V) ** (1 / beta))
     M = int(alpha * step)
-    # NOTE may end up recolouring same ones multiple times
+    # NOTE may end up moving same ones multiple times
     
-    # recolour M random vertices randomly
+    # move M random vertices randomly
     for _ in range(M):
         vtx = random.randint(0, n-1) # pick random vertex
-        new[vtx] = random.randint(1, colours) # randomly recolour vertex
+        new[vtx] = random.randint(1, sets_in_partition) # add to random partition set
 
     return new
 
-def local_flight(colouring):
+def local_flight(partition):
     '''
     Local search - visit local near neighbours.
 
-    Randomly select a vertex and recolour it
+    Randomly select a vertex and add it to different partition set.
     '''
-    new = colouring[:]
+    new = partition[:]
     vtx = random.randint(0, n-1)
-    new[vtx] = random.randint(1, colours)
+    new[vtx] = random.randint(1, sets_in_partition)
         
     return new
 
 # main function
 # cuckoo_search(n, N, num_cyc, p, q, alpha, beta)
 def cuckoo_search(N, num_cyc, p, q, alpha):
-    # randomly generate population of colourings
-    # each nest is a random (im)proper colouring
+    # generate population of random partitions
     P = []
-    for i in range(N):
-        P.append([random.randint(1, colours) for _ in range(n)])
+    for i in range(N): # for each nest
+        P.append([random.randint(1, sets_in_partition) for _ in range(n)]) # for each dimension
 
     # compute fitness of each nest
     fitnesses = [fitness(P[i]) for i in range(N)]
-    min_conflicts = min(fitnesses)
-    best_colouring = P[fitnesses.index(min_conflicts)]
+    min_fitness = min(fitnesses)
+    best_partition = P[fitnesses.index(min_fitness)]
 
     # main loop
     for t in range(num_cyc):
         if timed and time.time() - start_t > max_time:
             print("Time limit reached")
-            return min_conflicts, best_colouring
+            return best_partition
         
         if t % 50 == 0:
-            print("Cycle {0}, min_conflicts: {1}".format(t, min_conflicts))
+            print("\nCycle {0}, min_fitness: {1}".format(t, min_fitness))
+            # print set sizes
+            set_sizes = [0] * sets_in_partition
+            for i in range(v):
+                set_sizes[best_partition[i]-1] += 1
+            print("Largest set size: {0}, max size: {1}".format(max(set_sizes), target_size))
 
         # levy flights from each nest
         for i in range(N):
@@ -407,41 +405,42 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
 
             if timed and time.time() - start_t > max_time:
                 print("Time limit reached")
-                return min_conflicts, best_colouring
+                return best_partition
 
         # rank nests by fitness
         sorted_indices = sorted(range(N), key=lambda x: fitnesses[x])
 
         # update min_conflicts if necessary
-        if fitnesses[sorted_indices[0]] < min_conflicts:
-            min_conflicts = fitnesses[sorted_indices[0]]
-            best_colouring = P[sorted_indices[0]]
+        if fitnesses[sorted_indices[0]] < min_fitness:
+            min_fitness = fitnesses[sorted_indices[0]]
+            best_partition = P[sorted_indices[0]]
 
-            if min_conflicts == 0:
-                return min_conflicts, best_colouring
+            if min_fitness == 0:
+                return best_partition
         
         # abandon q fraction of worst nests & replace
         abandoned_nests = sorted_indices[-int(q * N):]
         for k in abandoned_nests:
-            # generate new random nest (colouring) to replace
-            P[k] = [random.randint(1, colours) for _ in range(n)]
+            # generate new random nest to replace abandoned one
+            P[k] = [random.randint(1, sets_in_partition) for _ in range(n)]
             fitnesses[k] = fitness(P[k])
 
             # update min_conflicts if necessary
-            if fitnesses[k] < min_conflicts:
-                min_conflicts = fitnesses[k]
-                best_colouring = P[k]
+            if fitnesses[k] < min_fitness:
+                min_fitness = fitnesses[k]
+                best_partition = P[k]
 
-                if min_conflicts == 0:
-                    return min_conflicts, best_colouring
+                if min_fitness == 0:
+                    return best_partition
             
             if timed and time.time() - start_t > max_time:
                 print("Time limit reached")
-                return min_conflicts, best_colouring
+                return best_partition
         
-    return min_conflicts, best_colouring
+    return best_partition
 
-conflicts, colouring = cuckoo_search(N, num_cyc, p, q, alpha)
+partition = cuckoo_search(N, num_cyc, p, q, alpha)
+conflicts = get_conflicts(partition)
 print("\nFinal conflicts: {0}\n".format(conflicts))
 
 
