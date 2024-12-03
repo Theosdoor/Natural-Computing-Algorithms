@@ -264,22 +264,28 @@ import numpy
 target_size = v // sets_in_partition # target size of each partition set (aim for equally balanced sets)
 
 n = v # if each vertex is a dimension
-num_cyc = 10000
-N = 50 # number of nests
-p = 0.6 # fraction of local flights to undertake
+num_cyc = 5000
+N = 55 # number of nests
+p = 0.50 # fraction of local flights to undertake
 q = 0.25 # fraction of nests to abandon
 alpha = 0.4*n # scaling factor for Levy flights
 beta = 1.5 # parameter for Mantegna's algorithm
 
-###########################################
-#### NOW INCLUDE THE REST OF YOUR CODE ####
-###########################################
-timed = False
-max_time = 59 # maximum time in seconds (60s)
-start_t = time.time()
+# fitness function penalties
+conflict_w = 1 # penalise for conflicts
+size_w = 1 # penalise for variance in set sizes
 
 # for Mantegna
 sigma_sq = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
+
+# for timing
+timed = False
+max_time = 59 # maximum time in seconds (60s)
+
+###########################################
+#### NOW INCLUDE THE REST OF YOUR CODE ####
+###########################################
+start_t = time.time()
 
 def get_conflicts(partition):
     '''
@@ -303,23 +309,28 @@ def get_set_sizes(partition):
 
 def fitness(partition):
     '''
-    Fitness function to minimise number of conflcits, and enforce roughly equal set sizes.
+    Fitness function to minimise:
+    1) number of conflcits
+    2) variance between partition set sizes
+
     Fitness = 0 is optimal.
     '''
-    fitness = 0
-    penalty_per_vertex = 6
+    fitness = conflict_w * get_conflicts(partition)
 
     # penalise partitions where theyre not (roughly) equally sized
     set_sizes = get_set_sizes(partition)
-    for size in set_sizes:
-        if size > target_size:
-            # add penalty to fitness for each vertex over target_size
-            penalty = penalty_per_vertex * (size - target_size)
-            fitness += penalty
+    variance = numpy.var(set_sizes)
     
-    # penalise partitions with conflicts
-    fitness += get_conflicts(partition)
+    # weighted fitness function
+    fitness += int(size_w * variance)
+
     return fitness
+
+def rebalance(partitions):
+    '''
+    Ensure partitions are balanced by moving vertices between sets
+    '''
+    pass
 
 
 def levy_flight(partition, alpha):
@@ -359,17 +370,29 @@ def local_flight(partition):
     return new
 
 # main function
-# cuckoo_search(n, N, num_cyc, p, q, alpha, beta)
 def cuckoo_search(N, num_cyc, p, q, alpha):
+    '''
+    Cuckoo Search algorithm
+
+    cuckoo_search(n, N, num_cyc, p, q, alpha, beta)
+
+    1. Generate random initial population of N nests
+    2. Enter main loop:
+        a. Generate new nests using Levy flights
+        b. Perform local search on a fraction of nests
+        c. Replace worst nests with new random nests
+    '''
+    global size_w
     # generate population of random partitions
     P = []
-    for i in range(N): # for each nest
+    for _ in range(N): # for each nest
         P.append([random.randint(1, sets_in_partition) for _ in range(n)]) # for each dimension
+        # NOTE - assume random init will likely have roughly equal set sizes
 
-    # compute fitness of each nest
-    fitnesses = [fitness(P[i]) for i in range(N)]
-    min_fitness = min(fitnesses)
-    best_partition = P[fitnesses.index(min_fitness)]
+    # compute fitness of each nest & track best
+    fitnesses = [fitness(nest) for nest in P]
+    best_fitness = min(fitnesses)
+    best_partition = P[fitnesses.index(best_fitness)]
 
     # main loop
     for t in range(num_cyc):
@@ -377,31 +400,38 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
             print("Time limit reached")
             return best_partition
         
+        # print updates
         if t % 50 == 0:
-            print("\nCycle {0}, min_fitness: {1}".format(t, min_fitness))
+            size_w = 0.01*math.sqrt(t) # increase weight of size penalty over time
+            print("\nCycle {0}, best_fitness: {1}, min_conflicts: {2}".format(t, best_fitness, get_conflicts(best_partition)))
             # print set sizes
-            set_sizes = [0] * sets_in_partition
-            for i in range(v):
-                set_sizes[best_partition[i]-1] += 1
-            print("Largest set size: {0}, max size: {1}".format(max(set_sizes), target_size))
+            set_sizes = get_set_sizes(best_partition)
+            print("Largest set: {0}, smallest: {1}, target size: {2}".format(max(set_sizes), min(set_sizes), target_size))
 
         # levy flights from each nest
         for i in range(N):
             # undertake Levy flight from x_i to y_i
             y = levy_flight(P[i], alpha) # y_i
-            if fitness(y) < fitnesses[i]:
+            y_fitness = fitness(y)
+            if y_fitness < fitnesses[i]:
                 # replace x_i with y_i if y_i is better
                 P[i] = y
-                fitnesses[i] = fitness(y)
+                fitnesses[i] = y_fitness
+
+                # update best
+                if y_fitness < best_fitness:
+                    best_fitness = y_fitness
+                    best_partition = y
 
         # local search with probability p
         local_flights = random.sample(range(N), int(p * N)) # select p fraction of nests
         for j in local_flights:
             # undertake local flight
             y = local_flight(P[j])
-            if fitness(y) < fitnesses[j]:
+            y_fitness = fitness(y)
+            if y_fitness < fitnesses[j]:
                 P[j] = y
-                fitnesses[j] = fitness(y)
+                fitnesses[j] = y_fitness
 
             if timed and time.time() - start_t > max_time:
                 print("Time limit reached")
@@ -410,12 +440,12 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
         # rank nests by fitness
         sorted_indices = sorted(range(N), key=lambda x: fitnesses[x])
 
-        # update min_conflicts if necessary
-        if fitnesses[sorted_indices[0]] < min_fitness:
-            min_fitness = fitnesses[sorted_indices[0]]
+        # update best if necessary
+        if fitnesses[sorted_indices[0]] < best_fitness:
+            best_fitness = fitnesses[sorted_indices[0]]
             best_partition = P[sorted_indices[0]]
 
-            if min_fitness == 0:
+            if best_fitness == 0:
                 return best_partition
         
         # abandon q fraction of worst nests & replace
@@ -425,12 +455,12 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
             P[k] = [random.randint(1, sets_in_partition) for _ in range(n)]
             fitnesses[k] = fitness(P[k])
 
-            # update min_conflicts if necessary
-            if fitnesses[k] < min_fitness:
-                min_fitness = fitnesses[k]
+            # update best if necessary
+            if fitnesses[k] < best_fitness:
+                best_fitness = fitnesses[k]
                 best_partition = P[k]
 
-                if min_fitness == 0:
+                if best_fitness == 0:
                     return best_partition
             
             if timed and time.time() - start_t > max_time:

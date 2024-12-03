@@ -32,13 +32,13 @@ alg_code = "CS"
 #### ENTER THE CODE FOR THE GRAPH PROBLEM YOU ARE OPTIMIZING ####
 #################################################################
 
-problem_code = "GC"
+problem_code = "GP"
 
 #############################################################
 #### ENTER THE DIGIT OF THE INPUT GRAPH FILE (A, B OR C) ####
 #############################################################
 
-graph_digit = "C"
+graph_digit = "B"
 
 ################################################################
 #### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
@@ -256,262 +256,221 @@ start_time = time.time()
 #### FIRST IMPORT ANY MODULES IMMEDIATELY BELOW ####
 ####################################################
 
-
+import numpy as np
 
 ##########################################################
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
 ##########################################################
-
+target_size = v // sets_in_partition # target size of each partition set (aim for equally balanced sets)
 
 n = v # if each vertex is a dimension
-num_cyc = 3000
-N = 50 # number of nests
-p = 0.6 # fraction of local flights to undertake
+num_cyc = 5000
+N = 55 # number of nests
+p = 0.50 # fraction of local flights to undertake
 q = 0.25 # fraction of nests to abandon
 alpha = 0.4*n # scaling factor for Levy flights
 beta = 1.5 # parameter for Mantegna's algorithm
 
+# fitness function penalties
+# conflict_w = 1 # penalise for conflicts
+# size_w = 1 # penalise for variance in set sizes
+
+# for Mantegna
+sigma_sq = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
+
+# for timing
+timed = False
+max_time = 59 # maximum time in seconds (60s)
 ###########################################
 #### NOW INCLUDE THE REST OF YOUR CODE ####
 ###########################################
-timed = False
-max_time = 59 # maximum time in seconds (60s)
 start_t = time.time()
 
-# for Mantegna
-sigma = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
-
-# class Vertex:
-#     def __init__(self, id):
-#         self.id = id
-#         self.colour = random.randint(1, colours) # random initial colour
-#         self.neighbours = []
-#         self.available_colours = [i for i in range(1, colours+1)] # 1 - 40
-#         self.conflicts = 0
-
-#         # init neighbours
-#         for i in range(v):
-#             if matrix[id][i] == 1:
-#                 self.neighbours.append(i)
-
-#     def recolour(self):
-#         self.colour = random.choice(self.available_colours)
-
-#     def update_availble(self):
-#         self.available_colours = [i for i in range(1, colours+1)] # reset available colours
-#         for n in self.neighbours:
-#             if vertices[n].colour in self.available_colours:
-#                 self.available_colours.remove(vertices[n].colour)
-
-#     def update_conflicts(self):
-#         self.conflicts = 0
-#         for n in self.neighbours:
-#             if vertices[n].colour == self.colour:
-#                 self.conflicts += 1
-
-
-best_colouring = []
-min_conflicts = float('inf')
-# vertices = [Vertex(i) for i in range(v)]
-
-def fitness(colouring):
-    # minimise number of conflicts
-    # currently fitness = number of conflicts (>0)
-    # proper colouring iff conflicts = 0
-
-    # (same calculation as in error checking)
+def get_conflicts(partition):
+    '''
+    Get number of conflicts in partition
+    '''
     conflicts = 0
     for i in range(v):
         for j in range(i+1, v):
-            if matrix[i][j] == 1 and colouring[i] == colouring[j]:
+            if matrix[i][j] == 1 and partition[i] != partition[j]:
                 conflicts += 1
     return conflicts
 
-def get_vertex_conflicts(vtx):
+def get_set_sizes(partition):
     '''
-    vtx is integer between 1 and v
+    Get number of vertices (i.e. size) of each set in the given partition
     '''
-    conflicts = 0
+    set_sizes = [0] * sets_in_partition
     for i in range(v):
-        if matrix[vtx][i] == 1 and colouring[vtx] == colouring[i]:
-            conflicts += 1
-    return conflicts
+        set_sizes[partition[i]-1] += 1 # NOTE: partition sets are 1-indexed, hence -1 in index
+    return set_sizes
 
-def greedy_colouring(priorities = [], recursions = 0):
+def fitness(partition):
     '''
-    Greedy colouring algorithm
+    Fitness function to minimise number of conflcits
 
-    Enhance ideas:
-    - priorities
+    Fitness = 0 is optimal.
     '''
-    # NOTE ENHANCED
-    colouring = [0] * v
-    vertices = [i for i in range(v) if i not in priorities]
-    random.shuffle(vertices) # randomise order of vertices
-    if len(priorities) > 0:
-        vertices = priorities + vertices
-    for vtx_i in vertices:
-        # check neighbours
-        unavailable_colours = [0]
-        for vtx_j in vertices:
-            if matrix[vtx_i][vtx_j] == 1 and colouring[vtx_j] not in unavailable_colours:
-                unavailable_colours.append(colouring[vtx_j])
-        
-        # check if all cols used
-        if len(unavailable_colours) == colours + 1:
-            # all colours used
-            priorities.append(vtx_i)
-            colouring[vtx_i] = random.randint(1, colours)
+    fitness = get_conflicts(partition)
+    return fitness
 
-        # colour vertex
-        for colour in range(1, colours+1):
-            if colour not in unavailable_colours:
-                colouring[vtx_i] = colour
-                if vtx_i in priorities:
-                    priorities.remove(vtx_i)
-                break
+def gen_rand_nest():
+    '''
+    Generate random balanced partitions
+    '''
+    min_size = v // sets_in_partition # minimum size for a partition set
+    r = v % sets_in_partition # remainder vertices
 
-        if len(priorities) > 0 and recursions < 10:
-            recursions += 1
-            random.shuffle(priorities)
-            # redo greedy colouring starting with vertices in priorities
-            return greedy_colouring(priorities, recursions)
+    partition = []
+    # ensure all partitions are at least min_size
+    for i in range(1, sets_in_partition+1):
+        partition += [i] * min_size
 
+    if r > 0:
+        # place spare vertices in random partitions (max 1 per partition!)
+        choices = random.sample(range(1, sets_in_partition+1), r)
+        partition += choices
     
-    return colouring
+    random.shuffle(partition) # shuffle to randomise which vertices are in which partition
+    return partition
 
 
-def levy_flight(colouring, best, alpha):
+def levy_flight(partition, alpha):
     '''
     Levy Flight using Mantegna's algorithm
     '''
-    new = colouring[:]
+    new = partition[:]
 
-    # U sampled from normal dist N(0, sigma)
-    U = random.gauss(0, sigma)
+    # U sampled from normal dist N(0, sigma_sq)
+    U = random.gauss(0, sigma_sq)
 
     # V sampled from normal dist N(0, 1)
     V = random.gauss(0, 1)
 
-    # Levy flight - pick M vertices to recolour using levy dist
+    # Levy flight - pick M vertices using levy dist
     step = abs(U / abs(V) ** (1 / beta))
     M = int(alpha * step)
-    # NOTE may end up recolouring same ones multiple times
     
-    # recolour M random vertices randomly
+    # swap M random pairs of vertices
     for _ in range(M):
-        vtx = random.randint(0, n-1) # pick random vertex
-        p = random.random()
-        if p < 0.5: # NOTE ENHANCED
-            new[vtx] = random.randint(1, colours) # randomly recolour vertex
-        else:
-            new[vtx] = best[vtx] # recolour vertex with best colouring
+        u = random.randint(0, n-1)
+        v = random.randint(0, n-1)
+        new[u], new[v] = new[v], new[u]
 
     return new
 
-def local_flight(colouring, best):
+def local_flight(partition):
     '''
     Local search - visit local near neighbours.
 
-    Randomly select a vertex and recolour it
+    Randomly select a vertex and add it to different partition set.
     '''
-    new = colouring[:]
-    vtx = random.randint(0, n-1)
-    p = random.random()
-    if p < 0.5: # NOTE ENHANCED
-        new[vtx] = random.randint(1, colours)
-    else:
-        new[vtx] = best[vtx]
+    new = partition[:]
+
+    # swap random pair of vertices
+    u = random.randint(0, n-1)
+    v = random.randint(0, n-1)
+    new[u], new[v] = new[v], new[u]
         
     return new
 
 # main function
-# cuckoo_search(n, N, num_cyc, p, q, alpha, beta)
 def cuckoo_search(N, num_cyc, p, q, alpha):
-    # randomly generate population of colourings
-    # each nest is a random (im)proper colouring
-    P = []
-    for i in range(N):
-        p = random.random()
-        if p < 0.3:
-            P.append(greedy_colouring())
-        else:
-            P.append([random.randint(1, colours) for _ in range(n)])
+    '''
+    Cuckoo Search algorithm
 
-    # compute fitness of each nest
-    fitnesses = [fitness(P[i]) for i in range(N)]
-    min_conflicts = min(fitnesses)
-    best_colouring = P[fitnesses.index(min_conflicts)]
+    cuckoo_search(n, N, num_cyc, p, q, alpha, beta)
+
+    1. Generate random initial population of N nests
+    2. Enter main loop:
+        a. Generate new nests using Levy flights
+        b. Perform local search on a fraction of nests
+        c. Replace worst nests with new random nests
+    '''
+    # generate population of random partitions
+    P = []
+    for _ in range(N): # for each nest
+        P.append(gen_rand_nest())
+
+    # compute fitness of each nest & track best
+    fitnesses = [fitness(nest) for nest in P]
+    best_fitness = min(fitnesses)
+    best_partition = P[fitnesses.index(best_fitness)]
 
     # main loop
     for t in range(num_cyc):
         if timed and time.time() - start_t > max_time:
             print("Time limit reached")
-            return min_conflicts, best_colouring
+            return best_partition
         
+        # print updates
         if t % 50 == 0:
-            print("Cycle {0}, min_conflicts: {1}".format(t, min_conflicts))
-
+            print("\nCycle {0}, best_fitness: {1}, min_conflicts: {2}".format(t, best_fitness, get_conflicts(best_partition)))
+           
         # levy flights from each nest
         for i in range(N):
             # undertake Levy flight from x_i to y_i
-            y = levy_flight(P[i], best_colouring, alpha) # y_i
-            if fitness(y) < fitnesses[i]:
+            y = levy_flight(P[i], alpha) # y_i
+            y_fitness = fitness(y)
+            if y_fitness < fitnesses[i]:
                 # replace x_i with y_i if y_i is better
                 P[i] = y
-                fitnesses[i] = fitness(y)
+                fitnesses[i] = y_fitness
+
+                # update best
+                if y_fitness < best_fitness:
+                    best_fitness = y_fitness
+                    best_partition = y
 
         # local search with probability p
         local_flights = random.sample(range(N), int(p * N)) # select p fraction of nests
         for j in local_flights:
             # undertake local flight
-            y = local_flight(P[j], best_colouring)
-            if fitness(y) < fitnesses[j]:
+            y = local_flight(P[j])
+            y_fitness = fitness(y)
+            if y_fitness < fitnesses[j]:
                 P[j] = y
-                fitnesses[j] = fitness(y)
+                fitnesses[j] = y_fitness
 
             if timed and time.time() - start_t > max_time:
                 print("Time limit reached")
-                return min_conflicts, best_colouring
+                return best_partition
 
         # rank nests by fitness
         sorted_indices = sorted(range(N), key=lambda x: fitnesses[x])
 
-        # update min_conflicts if necessary
-        if fitnesses[sorted_indices[0]] < min_conflicts:
-            min_conflicts = fitnesses[sorted_indices[0]]
-            best_colouring = P[sorted_indices[0]]
+        # update best if necessary
+        if fitnesses[sorted_indices[0]] < best_fitness:
+            best_fitness = fitnesses[sorted_indices[0]]
+            best_partition = P[sorted_indices[0]]
 
-            if min_conflicts == 0:
-                return min_conflicts, best_colouring
+            if best_fitness == 0:
+                return best_partition
         
         # abandon q fraction of worst nests & replace
         abandoned_nests = sorted_indices[-int(q * N):]
         for k in abandoned_nests:
-            # generate new random nest (colouring) to replace
-            P[k] = [random.randint(1, colours) for _ in range(n)]
+            # generate new random nest to replace abandoned one
+            P[k] = gen_rand_nest()
             fitnesses[k] = fitness(P[k])
-            # levy flight
-            y = levy_flight(P[k], best_colouring, alpha)
-            if fitness(y) < fitnesses[k]:
-                P[k] = y
-                fitnesses[k] = fitness(y)
 
-            # update min_conflicts if necessary
-            if fitnesses[k] < min_conflicts:
-                min_conflicts = fitnesses[k]
-                best_colouring = P[k]
+            # update best if necessary
+            if fitnesses[k] < best_fitness:
+                best_fitness = fitnesses[k]
+                best_partition = P[k]
 
-                if min_conflicts == 0:
-                    return min_conflicts, best_colouring
+                if best_fitness == 0:
+                    return best_partition
             
             if timed and time.time() - start_t > max_time:
                 print("Time limit reached")
-                return min_conflicts, best_colouring
+                return best_partition
         
-    return min_conflicts, best_colouring
+    return best_partition
 
-conflicts, colouring = cuckoo_search(N, num_cyc, p, q, alpha)
+partition = cuckoo_search(N, num_cyc, p, q, alpha)
+conflicts = get_conflicts(partition)
 print("\nFinal conflicts: {0}\n".format(conflicts))
 
 
