@@ -262,16 +262,23 @@ import numpy as np
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
 ##########################################################
 n = v # if each vertex is a dimension
-num_cyc = 100000
-N = 50 # number of nests
+num_cyc = 3000
+N = 30 # number of nests
 p = 0.50 # fraction of local flights to undertake
 q = 0.25 # fraction of nests to abandon
-alpha = 0.4*n # scaling factor for Levy flights
+alpha0 = 0.4*n # scaling factor for Levy flights
+alphat = alpha0 # Levy scaling that changes with time (for Levy flights from new nest)
+
 beta = 1.5 # parameter for Mantegna's algorithm
 
+# Enhanced parameters
+p_vertices = 0.01 # fraction of vertices from each of 2 random partitions to consider in local search
+# running time for local search is p*(v/k)^2
+w = 6
+
 # for timing
-timed = True
-max_time = 30000 # maximum time in seconds (60s)
+timed = False
+max_time = 400 # maximum time in seconds (60s)
 ###########################################
 #### NOW INCLUDE THE REST OF YOUR CODE ####
 ###########################################
@@ -283,7 +290,30 @@ sigma_sq = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math
 min_size = v // sets_in_partition # minimum size for a partition set
 rem = v % sets_in_partition # remainder vertices (to add to random partitions)
 
+if rem == 0:
+    max_size = min_size
+else:
+    max_size = min_size + 1
+
 start_t = time.time()
+
+class Vertex:
+    '''
+    Class to store data for each vertex that won't change during the algorithm.
+    Saves computing it again!
+    '''
+    def __init__(self, id):
+        self.id = id
+        self.degree = 0
+        self.neighbours = []
+
+        # get neighbours
+        for i in range(v):
+            if matrix[id][i] == 1:
+                self.degree += 1
+                self.neighbours.append(i)
+
+vertices = [Vertex(i) for i in range(v)] # store vertex data to refer to throughout
 
 def get_conflicts(partition):
     '''
@@ -331,33 +361,75 @@ def gen_rand_nest():
     random.shuffle(partition) # shuffle to randomise which vertices are in which partition
     return partition
 
+def gen_greedy_nest():
+    '''
+    generate greedy nest.
+
+    1. get the degree of each vertex
+    2. sort vertices by degree
+
+    '''
+    partition = [0] * v # init partition (invalid since = 0!)
+    sets_and_sizes = {i: 0 for i in range(1, sets_in_partition+1)} # init with all partitions and 0 size
+
+    # sort vertices by degree
+    vtxs = sorted(vertices, key=lambda x: x.degree, reverse=True) # sort by degree
+    # vtxs = vertices[:]
+
+    # add to partitions
+    c = 0
+    for vtx in vtxs:
+        c+=1
+        # check if can add to partition, starting with smallest
+        
+        # sort sets by size
+        checklist = list(sets_and_sizes.items())
+        checklist.sort(key=lambda x: x[1]) # sort by size (ascending)
+
+        while len(checklist) > 0:
+            min_set = checklist.pop(0)[0]
+
+            # check if can add to partition
+            conflicts = 0
+            for neighbour in vtx.neighbours:
+                if partition[neighbour] == min_set:
+                    conflicts += 1
+            if conflicts == 0:
+                # add to partition
+                partition[vtx.id] = min_set
+                sets_and_sizes[min_set] += 1
+
+                # remove maxxed out sets
+                if sets_and_sizes[min_set] == max_size:
+                    sets_and_sizes.pop(min_set)
+                break
+
+            # otherwise continue
+
+        # if still not added, add to random partition that isnt full
+        if partition[vtx.id] == 0:
+            # pick random from sets_and_sizes keys
+            rand_set = random.choice(list(sets_and_sizes.keys()))
+            partition[vtx.id] = rand_set
+            sets_and_sizes[rand_set] += 1
+
+            # remove maxxed out sets
+            if sets_and_sizes[rand_set] == max_size:
+                sets_and_sizes.pop(rand_set)
+
+    if 0 in partition:
+        print("Greedy partition failed!")
+        sys.exit()
+
+    return partition
+
+
 
 def levy_flight(partition, alpha):
     '''
-    Levy Flight using spectral partitioning
+    Levy Flight using Mantegna's algorithm
     '''
     new = partition[:]
-
-    # # Step 1: Compute the degree matrix (diagonal matrix with degrees of each node)
-    # degrees = np.sum(A, axis=1)  # sum of each row gives the degree
-    # D = np.diag(degrees)
-
-    # # Step 2: Compute the Laplacian matrix
-    # L = D - A
-
-    # # Step 3: Compute eigenvalues and eigenvectors of the Laplacian matrix
-    # eigenvalues, eigenvectors = np.linalg.eig(L)
-
-    # # Step 4: Find the second smallest eigenvalue and its corresponding eigenvector (the Fiedler vector)
-    # # Sort eigenvalues and get the index of the second smallest
-    # sorted_indices = np.argsort(eigenvalues)
-    # fiedler_index = sorted_indices[1]  # second smallest eigenvalue index
-
-    # # Fiedler vector is the eigenvector corresponding to the second smallest eigenvalue
-    # fiedler_vector = eigenvectors[:, fiedler_index]
-
-    # # normalise the Fiedler vector
-    # fiedler_vector = fiedler_vector / np.linalg.norm(fiedler_vector)
 
     # U sampled from normal dist N(0, sigma_sq)
     U = random.gauss(0, sigma_sq)
@@ -385,31 +457,30 @@ def local_flight(partition):
     '''
     new = partition[:]
 
+    # swap random pair of vertices
+    u = random.randint(0, n-1)
+    v = random.randint(0, n-1)
+    new[u], new[v] = new[v], new[u]
+    return new
+
     # pick 2 random (different!) partition sets
     A, B = random.sample(range(1, sets_in_partition+1), 2)
 
     A_vertices = []
     B_vertices = []
-    for i in range(v):
+    for i in range(len(partition)):
         if partition[i] == A:
             A_vertices.append(i)
         elif partition[i] == B:
             B_vertices.append(i)
     # we're gonna swap a vertex from A to B to improve the partition
 
-    # # if theyre not equal size, drop a random vertex from larger one
-    # if len(A_vertices) > len(B_vertices):
-    #     A_vertices.remove(random.choice(A_vertices))
-    # elif len(B_vertices) > len(A_vertices):
-    #     B_vertices.remove(random.choice(B_vertices))
-
     # Initial conflicts before move
     initial_conflicts = get_conflicts(new)
 
     # take a fraction of vertices from each set
-    p = 0.08
-    A_vertices = random.sample(A_vertices, int(p * len(A_vertices)))
-    B_vertices = random.sample(B_vertices, int(p * len(B_vertices)))
+    A_vertices = random.sample(A_vertices, int(p_vertices * len(A_vertices)))
+    B_vertices = random.sample(B_vertices, int(p_vertices * len(B_vertices)))
     
     # Try to move a vertex to potentially reduce conflicts
     best_swap = None
@@ -417,28 +488,40 @@ def local_flight(partition):
 
     for a in A_vertices:
         for b in B_vertices:
+
             # Temporary move
             new[a], new[b] = new[b], new[a]
             new_conflicts = get_conflicts(new)
             
             # Compute gain (+ve if good, -ve if bad)
             gain = initial_conflicts - new_conflicts
-            
-            # Revert move
-            new[a] = A
-            new[b] = B
+
+            if gain <= 0: # i.e. no improvement
+                # Revert move
+                new[a], new[b] = new[b], new[a]
+            continue
+
+
             
             # Track best move
             if gain > best_gain:
                 best_swap = (a, b)
                 best_gain = gain
+
+                # Break early if a very good swap is found
+                if gain > initial_conflicts * 0.01: 
+                    break
+       
+        # Break outer loop if a very good swap is found
+        # if best_gain > initial_conflicts * 0.1:
+        #     break
         
     
     # Apply best move if found
-    if best_swap:
-        a, b = best_swap
-        new[a] = B
-        new[b] = A
+    # if best_swap:
+    #     a, b = best_swap
+    #     new[a] = B
+    #     new[b] = A
 
     return new
 
@@ -492,17 +575,9 @@ def local_flight(partition):
     #     else:
     #         break
                     
-            
-
-
-    # # swap random pair of vertices
-    # u = random.randint(0, n-1)
-    # v = random.randint(0, n-1)
-    # new[u], new[v] = new[v], new[u]
-    # return new
 
 # main function
-def cuckoo_search(N, num_cyc, p, q, alpha):
+def cuckoo_search(N, num_cyc, p, q):
     '''
     Cuckoo Search algorithm
 
@@ -516,10 +591,14 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
         b. Perform local search on a fraction of nests
         c. Replace worst nests with new random nests
     '''
+    global beta
+    global alphat
+    global alpha0
+
     # generate population of random nests
     P = []
     for _ in range(N): # for each nest
-        nest = gen_rand_nest()
+        nest = gen_greedy_nest()
         P.append([nest, fitness(nest)]) # store nest and its fitness together
 
     # track best nest with minimum fitness
@@ -536,12 +615,13 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
             print("\nCycle {0}, best_fitness: {1}".format(t, best[1]))
             set_sizes = get_set_sizes(best[0])
             print("Set sizes: ", set_sizes)
-            print("Time remaining: {0}s".format(int(max_time - (time.time() - start_t))))
+            if timed:
+                print("Time remaining: {0}s".format(int(max_time - (time.time() - start_t))))
            
         # levy flights from each nest
         for i in range(N):
             # undertake Levy flight from x_i to y_i
-            y = levy_flight(P[i][0], alpha) # y_i
+            y = levy_flight(P[i][0], alpha0) # y_i
             y_fitness = fitness(y)
             if y_fitness < P[i][1]:
                 # replace x_i with y_i if y_i is better
@@ -566,6 +646,7 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
 
         # rank nests by fitness
         P.sort(key=lambda x: x[1])
+        ranked_nests = P[:w]
 
         # update best if necessary
         # (P[0] is the best partition currently in P)
@@ -576,11 +657,17 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
                 return best[0]
         
         # abandon q fraction of worst nests & replace
+        alphat = alphat / math.sqrt(t+1) # decrease alpha over time
         abandoned_nests = P[-int(q * N):]
         for k in abandoned_nests:
             idx = P.index(k)
-            # generate new random nest to replace abandoned one
-            y = gen_rand_nest()
+            if random.random() < 0.3:
+                # generate new random nest to replace abandoned one
+                y = gen_rand_nest()
+            else:
+                # pick one of ranked nests with weight according to fitness
+                y = random.choices(ranked_nests, weights=[1/nest[1] for nest in ranked_nests])[0][0]
+                y = levy_flight(y, alphat) # levy flight from best nest
             P[idx] = [y, fitness(y)]
 
             # update best if necessary
@@ -596,7 +683,7 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
         
     return best[0]
 
-partition = cuckoo_search(N, num_cyc, p, q, alpha)
+partition = cuckoo_search(N, num_cyc, p, q)
 conflicts = get_conflicts(partition) # I get conflicts here, just in case fitness != number of conflicts!
 
 #########################################################
