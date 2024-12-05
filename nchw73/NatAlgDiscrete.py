@@ -277,6 +277,7 @@ w = 6 # number of ranked nests (these influence newly generated nests)
 p_ranked = 0.4 # probability of picking a ranked nest to generate a new nest via levy flight (alternative is random)
 init_greedy = False # if True, then the initial nests are generated using my 'greedy' algorithm. Be warned - they are crap! if False, init nests randomly.
 levy_strat = 'R' # 'R' for randomly swapping 2 vertices, 'FM' for (my version of) the Fiduccia-Mattheyses heuristic
+neighbour_limit = 4 # maximum number of neighbours to check in flight
 
 # for timing
 timed = False
@@ -316,7 +317,20 @@ class Vertex:
                 self.degree += 1
                 self.neighbours.append(i)
 
-vertices = [Vertex(i) for i in range(v)] # store vertex data to refer to throughout
+    def get_neighbours(self):
+        return self.neighbours[:] # return copy so we can't edit it
+
+vertices = tuple([Vertex(i) for i in range(v)]) # store vertex data to refer to throughout (tuple so it cannot be edited)
+
+# get a count of how many vertices there are of each degree
+deg_counts = {}
+for i in range(v):
+    if vertices[i].degree not in deg_counts:
+        deg_counts[vertices[i].degree] = 1
+    else:
+        deg_counts[vertices[i].degree] += 1
+print(deg_counts)
+# sys.exit()
 
 def get_conflicts(partition):
     '''
@@ -376,13 +390,11 @@ def gen_greedy_nest():
     sets_and_sizes = {i: 0 for i in range(1, sets_in_partition+1)} # init with all partitions and 0 size
 
     # shuffle vertices
-    vtxs = vertices[:]
+    vtxs = list(vertices[:])
     random.shuffle(vtxs)
 
     # add to partitions
-    c = 0
     for vtx in vtxs:
-        c+=1
         # check if can add to partition, starting with smallest
         
         # sort sets by size
@@ -399,7 +411,7 @@ def gen_greedy_nest():
 
             # check if can add to partition
             conflicts = 0
-            for neighbour in vtx.neighbours:
+            for neighbour in vtx.get_neighbours():
                 if partition[neighbour] == min_set:
                     conflicts += 1
             # if no conflicts - add it and move to next vertex!
@@ -435,6 +447,105 @@ def gen_greedy_nest():
 
     return partition
 
+def neighbour_swap(partition, a, b, limit=1):
+    '''
+    Swap 2 vertices in partition.
+
+    limit is the maximum number of swaps to make.
+    '''
+    new = partition[:]
+    swaps = 0
+
+    # define the 2 partitions we're working with
+    A = partition[a]
+    B = partition[b]
+
+    # swap a, b
+    new[a], new[b] = new[b], new[a]
+    swaps += 1
+
+    # get neighbours within same partition to check
+    a_checklist = vertices[a].get_neighbours()
+    b_checklist = vertices[b].get_neighbours()
+    tempAlist = []
+    tempBlist = []
+
+    # store only neighbours in same partition
+    for i in a_checklist:
+        if partition[i] != A:
+            a_checklist.remove(i)
+        else:
+            tempAlist.append(partition[i])
+    for i in b_checklist:
+        if partition[i] != B:
+            b_checklist.remove(i)
+        else:
+            tempBlist.append(partition[i])
+
+    print(a_checklist)
+    print(b_checklist)
+
+    # if len(a_checklist) + len(b_checklist) == 0:
+    #     return new # one vertex has degree 0 ==> no neighbours to check!
+
+    # get v with degree 0 in A and B
+    A_deg0 = []
+    B_deg0 = []
+
+    for i in range(v):
+        if vertices[i].degree == 0:
+            if partition[i] == A:
+                A_deg0.append(i)
+            if partition[i] == B:
+                B_deg0.append(i)
+
+    # sort both checklists by degree
+    a_checklist.sort(key=lambda x: vertices[x].degree)
+    b_checklist.sort(key=lambda x: vertices[x].degree)
+
+    # print(a_checklist[0])
+    # print(vertices[a_checklist[0]].degree)
+
+    A_deg1 = []
+
+    # also swap all neighbours with degree 1 if possible for free (guaranteed benefit)
+    for i in a_checklist:
+        if vertices[i].degree == 1:
+            A_deg1.append(i)
+            a_checklist.remove(i)
+        else:
+            break # list sorted so we know we wont finy any more degree 1 vertices
+    
+    if len(A_deg1) + len(A_deg0) > 0: # only worth checking B if we have something to swap it with in A
+        for i in b_checklist:
+            if vertices[i].degree == 1:
+                new[i] = A
+                if len(A_deg1) > 0:
+                    new[A_deg1.pop()] = B
+                else:
+                    new[A_deg0.pop()] = B
+                b_checklist.remove(i)
+                print(get_set_sizes(new), A, B)
+                sys.exit()
+            else:
+                break
+
+
+
+    # while swaps availble, check neighbours and swap if beneficial
+    # while swaps < limit:
+    #     pass
+
+    return new
+
+    
+
+    # swap u, v
+    # check neighbours of u, v & add to checklist to see if swapping them along with u,v helps
+
+
+    return new
+
 
 
 def levy_flight(partition, alpha):
@@ -462,7 +573,10 @@ def levy_flight(partition, alpha):
     for _ in range(M):
         u = random.randint(0, n-1)
         v = random.randint(0, n-1)
-        new[u], new[v] = new[v], new[u]
+        while new[u] == new[v]: # make sure we're swapping vertices between different partitions
+            v = random.randint(0, n-1)
+        # new[u], new[v] = new[v], new[u]
+        new = neighbour_swap(new, u, v, M)
 
     return new
 
@@ -590,7 +704,10 @@ def local_flight(partition):
     # swap random pair of vertices
     u = random.randint(0, n-1)
     v = random.randint(0, n-1)
-    new[u], new[v] = new[v], new[u]
+    while new[u] == new[v]: # make sure we're swapping vertices between different partitions
+        v = random.randint(0, n-1)
+    # new[u], new[v] = new[v], new[u]
+    new = neighbour_swap(new, u, v, 1) # limit to 1 swap
     return new
                     
 
