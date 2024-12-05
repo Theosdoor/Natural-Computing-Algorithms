@@ -265,17 +265,17 @@ import numpy as np
 n = v # if each vertex is a dimension
 num_cyc = 100000
 N = 50 # number of nests
-p = 0.9 # fraction of local flights to undertake
-q = 0.8 # fraction of nests to abandon
+p = 0.5 # fraction of local flights to undertake
+q = 0.25 # fraction of nests to abandon
 alpha = 2 # scaling factor for Levy flights
 beta = 1.5 # parameter for Mantegna's algorithm
 
 # ENHANCED parameters
-alpha_decay = False # if True, then alphat decays over time
+alpha_decay = True # if True, then alphat decays over time
 alphat = alpha # Levy scaling that changes with time (for Levy flights from new nest)
 
-w = 0 # number of ranked nests (these influence newly generated nests)
-p_ranked = 0.4 # probability of picking a ranked nest to generate a new nest via levy flight (alternative is random)
+w = 6 # number of ranked nests (these influence newly generated nests)
+p_ranked = 0.8 # probability of picking a ranked nest to generate a new nest via levy flight (alternative is random)
 
 init_greedy = False # if True, then the initial nests are generated using my 'greedy' algorithm. Be warned - they are crap! if False, init nests randomly.
 
@@ -284,7 +284,7 @@ neighbour_limit = 4 # maximum number of neighbours to check in flight
 
 # for timing
 timed = True
-max_time = 30 # maximum time in seconds (60s)
+max_time = 58 # maximum time in seconds (60s)
 
 ###########################################
 #### NOW INCLUDE THE REST OF YOUR CODE ####
@@ -582,6 +582,9 @@ def levy_flight(partition, alpha):
         while new[u] == new[v]: # make sure we're swapping vertices between different partitions
             v = random.randint(0, n-1)
         new = neighbour_swap(new, u, v, M)
+    else:
+        print("Invalid Levy strategy! Try 'FM' or 'R'")
+        sys.exit()
 
     return new
 

@@ -10,20 +10,9 @@ Validation of student 'nchw73':
 'WitnessA.txt'           exists
 'WitnessB.txt'           exists
 'WitnessC.txt'           exists
-*** error: 'NegSelReport.pdf' should be in the folder 'nchw73' but isn't
-*** error: 'NatAlgReport.pdf' should be in the folder 'nchw73' but isn't
+'NegSelReport.pdf'       exists
+'NatAlgReport.pdf'       exists
 'validation.txt'         exists
-*** warning: 'WitnessB_nchw73_Dec05122511.txt' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05121848.txt' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05122200.txt' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05122015.txt' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05122423.txt' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05121658.txt' is an illegal item
-*** warning: '.venv' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05122235.txt' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05122907.txt' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05121940.txt' is an illegal item
-*** warning: 'WitnessA_nchw73_Dec05122938.txt' is an illegal item
 
 for 'NegSelTraining.py':
   username = 'nchw73'; algorithm code = 'VD'
@@ -49,4 +38,4 @@ for 'WitnessC.txt':
   parameters = [n = 800, num_cyc = 3000, N = 20, p = 0.5, q = 0.25, alpha = 2.0, beta = 1.5]
   conflicts = 212; elapsed time = 3251.7
 
-*** ERRORS: There were fatal errors!
+The submission has successfully validated!

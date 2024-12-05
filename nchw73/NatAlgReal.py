@@ -153,14 +153,13 @@ num_cyc = 24000
 N = 50 # number of nests
 p = 0.6 # fraction of local flights to undertake
 q = 0.25 # fraction of nests to abandon
-alpha = 0.4*n # scaling factor for Levy flights
+alpha = 1.6 # scaling factor for Levy flights
+beta = 1.5
 
 timed = True
-max_time = 9.8 # maximum time in seconds
-start_t = time.time()
+max_time = 9.7 # maximum time in seconds
 
 # for Mantegna
-beta = 1.5
 sigma = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
 
 ###########################################
@@ -213,6 +212,7 @@ def local_flight(point):
 # main function
 # cuckoo_search(n, N, num_cyc, p, q, alpha, beta)
 def cuckoo_search(N, num_cyc, p, q, alpha):
+    start_t = time.time()
     # randomly generate population of nests
     P = []
     for i in range(N):
@@ -293,7 +293,7 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
             # update best_fitness if necessary
             if P[idx][1] < best[1]:
                 best = P[idx]
-                minima = [P[k][0]] # reset minima
+                minima = [P[idx][0]] # reset minima
             
             if timed and time.time() - start_t > max_time:
                 # print("Time limit reached")
