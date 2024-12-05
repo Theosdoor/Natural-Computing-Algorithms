@@ -39,7 +39,7 @@ alg_code = "VD"
 #### ENTER THE THRESHOLD: IF YOU ARE IMPLEMENTING VDETECTOR THEN SET THE THRESHOLD AS YOUR CHOICE OF SELF-RADIUS ####
 #####################################################################################################################
 
-threshold = 0.017
+threshold = 0.027
 
 ######################################################
 #### ENTER THE INTENDED SIZE OF YOUR DETECTOR SET ####
@@ -356,7 +356,7 @@ def v_detector(c0, c1, r_self, intended_num_detectors, alpha): # Self is constan
                 r = dst - r_self
         
         if r > r_self:
-            x.append(r+alpha*threshold) # ENHANCEMENT?
+            x.append(r + alpha*threshold) # ENHANCEMENT?
             D.append(x)
         else:
             t1 += 1
@@ -394,87 +394,102 @@ best_far = 100
 best_detectors = []
 
 # uniformly dist values to iterate over
-Ns = [len(Self)]
-# c0s = numpy.random.uniform(0.99, 1, 5)
+Ns = [600]#numpy.linspace(400, 1000, 7)
+# c0s = numpy.linspace(0.99, 1, 10, endpoint=False)
 c0s = [0.9999]
 c1s = [0.9999]
-# c1s = numpy.random.uniform(0.99, 1, 5)
-thresholds = numpy.linspace(0.025, 0.04, 10)
-boundaries = numpy.linspace(0.36, 0.5, 10) # good between 0.35-0.5
+# c1s = numpy.linspace(0.9999, 1, 10, endpoint=False)
+thresholds = [0.027]#numpy.linspace(0.0255, 0.0275, 11)
+boundaries = numpy.linspace(0.35, 0.44, 10) # good between 0.35-0.5
 
-max_it = 2
+max_it = 3
 
-N = 1000
-c0 = 0.9999
-c1 = 0.9999
+# N = 1000
+# c0 = 0.9999
+# c1 = 0.9999
 # threshold = 0.0287
 
-# for N in Ns:
-#     if goodEnough:
-#         break
-#     for c0 in c0s:
-#         if goodEnough:
-#             break
-#         c0 = round(c0, 4)
-#         for c1 in c1s:
-#             if goodEnough:
-#                 break
-#             c1 = round(c1, 4)
-for threshold in thresholds:
-    threshold = round(threshold, 4)
-    for alpha in boundaries:
-        alpha = round(alpha, 4)
-        print("\n***********")
-        print("Testing: c0: {0}, c1: {1}, threshold: {2}, N: {3}, alpha: {4}".format(c0, c1, threshold, N, alpha))
+for N in Ns:
+    if goodEnough:
+        break
+    for c0 in c0s:
         if goodEnough:
             break
-        # it = 0
-        # while it < max_it: # repeat each parameter combo x times to account for randomness
-        for it in range(max_it):
-            print('-----------------')
-            print("Iteration: {0}".format(it))
-            detectors = v_detector(c0, c1, threshold, N, alpha)
-            det_rate, far, testing_time = test(detectors)
-            print("det_rate: {0}, far: {1}".format(det_rate, far))
+        # c0 = round(c0, 4)
+        for c1 in c1s:
+            if goodEnough:
+                break
+            # c1 = round(c1, 4)
+            for threshold in thresholds:
+                threshold = round(threshold, 4)
+                for alpha in boundaries:
+                    alpha = round(alpha, 4)
+                    print("***********")
+                    print("Testing: c0: {0}, c1: {1}, threshold: {2}, N: {3}, alpha: {4}".format(c0, c1, threshold, N, alpha))
+                    if goodEnough:
+                        break
+                    # it = 0
+                    # while it < max_it: # repeat each parameter combo x times to account for randomness
+                    avg_det_rate = 0
+                    avg_far = 0
+                    avd_len = 0
+                    for it in range(max_it):
+                        # print('-----------------')
+                        # print("Iteration: {0}".format(it))
+                        detectors = v_detector(c0, c1, threshold, N, alpha)
+                        det_rate, far, testing_time = test(detectors)
+                        avg_det_rate += det_rate
+                        avg_far += far
+                        avd_len += len(detectors)
+                        # print("det_rate: {0}, far: {1}".format(det_rate, far))
+                        # print("Num detectors: {0}".format(len(detectors)))
+                    
+                    det_rate = round(avg_det_rate / max_it, 2)
+                    far = round(avg_far / max_it, 2)
+                    avg_len = avd_len // max_it
+                    print("det_rate: {0}, far: {1}".format(det_rate, far))
+                    print("Num detectors: {0}".format(avg_len))
 
-            if (det_rate > best_det_rate and far <= max_far) or (far < best_far and det_rate >= min_det):
-                print("* NEW BEST *")
-                best_det_rate = det_rate
-                best_far = far
-                best_detectors = detectors
-                best_c0 = c0
-                best_c1 = c1
-                best_threshold = threshold
-                best_N = N
-                last_best_update = it
-                # if best_far < max_far: # if we've found a smaller far, update max_far
-                #     # max_far = best_far + 0.1*best_far
-                #     print("updated max_far to {0}".format(max_far))
-                # if best_det_rate > min_det:
-                #     # min_det = best_det_rate - 0.1*best_det_rate
-                #     print("updated min_det to {0}".format(min_det))
-                
+                    # if (det_rate > best_det_rate and far <= max_far) or (far < best_far and det_rate >= min_det):
+                    #     # print("* NEW BEST *")
+                    #     best_det_rate = det_rate
+                    #     best_far = far
+                    #     best_detectors = detectors
+                    #     best_c0 = c0
+                    #     best_c1 = c1
+                    #     best_threshold = threshold
+                    #     best_N = N
+                    #     last_best_update = it
+                        # if best_far < max_far: # if we've found a smaller far, update max_far
+                        #     # max_far = best_far + 0.1*best_far
+                        #     print("updated max_far to {0}".format(max_far))
+                        # if best_det_rate > min_det:
+                            # min_det = best_det_rate - 0.1*best_det_rate
+                            # print("updated min_det to {0}".format(min_det))
+                            
 
-        if det_rate > sat_det and far < sat_far:
-            goodEnough = True
-            break
-        # # if updated best last round, try again to see for another improvement
-        # if (it == max_it - 1) and (it - last_best_update == 1):
-        #     max_it+=1
-        
-        # it += 1
+                    if det_rate > sat_det and far < sat_far:
+                        goodEnough = True
+                        break
+                    # # if updated best last round, try again to see for another improvement
+                    # if (it == max_it - 1) and (it - last_best_update == 1):
+                    #     max_it+=1
+                    
+                    # it += 1
 
 detectors = best_detectors
 
 # save to vars
-c0 = best_c0
-c1 = best_c1
-threshold = best_threshold # already in note
-intended_num_detectors = best_N # already in note
+# c0 = best_c0
+# c1 = best_c1
+# threshold = best_threshold # already in note
+# intended_num_detectors = best_N # already in note
 
-added_note += "\ndet_rate: {0}, far: {1}".format(best_det_rate, best_far)
-added_note += "\nc0: {0}, c1: {1}".format(c0, c1)
-added_note += '\n'
+# added_note += "\ndet_rate: {0}, far: {1}".format(best_det_rate, best_far)
+# added_note += "\nc0: {0}, c1: {1}".format(c0, c1)
+# added_note += '\n'
+
+sys.exit()
 
 
 

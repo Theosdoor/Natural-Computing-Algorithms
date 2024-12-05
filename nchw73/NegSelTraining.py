@@ -39,13 +39,13 @@ alg_code = "VD"
 #### ENTER THE THRESHOLD: IF YOU ARE IMPLEMENTING VDETECTOR THEN SET THE THRESHOLD AS YOUR CHOICE OF SELF-RADIUS ####
 #####################################################################################################################
 
-threshold = 0.0271
+threshold = 0.027
 
 ######################################################
 #### ENTER THE INTENDED SIZE OF YOUR DETECTOR SET ####
 ######################################################
 
-num_detectors = 1000
+num_detectors = 600
 
 ################################################################
 #### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
@@ -171,6 +171,7 @@ intended_num_detectors = num_detectors
 ###########################################
 #### NOW YOU CAN ENTER YOUR CODE BELOW ####
 ###########################################
+timed = True
 time_limit = 13 # should be 15 in total training and testing
 
 # algorithm: v-detector (S, c0, c1, threshold, intended_num_detectors)
@@ -178,12 +179,13 @@ time_limit = 13 # should be 15 in total training and testing
 # parameters
 c0 = 0.9999 # expected coverage rate for detectors covering non-self
 c1 = 0.9999 # expected coverage rate for training set
+alpha = 0.36 # ENHANCEMENT - expand detector radius by alpha * threshold
 
 # define euclidean distance between 2 n-dim vectors
 def dist(x, y):
     return math.sqrt(sum([(x[i] - y[i])**2 for i in range(n)]))
 
-def v_detector(c0, c1, r_self, intended_num_detectors): # Self is constant in this case, so I've omitted it as parameter
+def v_detector(): # Self is constant in this case, so I've omitted it as parameter
     D = [] # detector set D
     t1 = 0
     start_t = time.time()
@@ -192,14 +194,13 @@ def v_detector(c0, c1, r_self, intended_num_detectors): # Self is constant in th
     while len(D) < intended_num_detectors: 
         t0 = 0
         phase_one_flag = False
-        if time.time() - start_t > time_limit:
+        if timed and time.time() - start_t > time_limit:
             return D
         
         while not phase_one_flag:
             # generate a random individual x from [0, 1]^n, set r = inf, and set phase_one_flag = "Successful"
             x = [random.random() for _ in range(n)]
             r = float("inf")
-            # TODO generate randomly? or near to another detector?
             phase_one_flag = True
 
             for d in D:
@@ -214,11 +215,11 @@ def v_detector(c0, c1, r_self, intended_num_detectors): # Self is constant in th
 
         for s in Self: # for every point in training set
             dst = dist(x, s)
-            if dst - r_self < r: 
-                r = dst - r_self
+            if dst - threshold < r: 
+                r = dst - threshold
         
-        if r > r_self:
-            x.append(r)
+        if r > threshold:
+            x.append(r + alpha*threshold)
             D.append(x)
         else:
             t1 += 1
@@ -229,7 +230,7 @@ def v_detector(c0, c1, r_self, intended_num_detectors): # Self is constant in th
 
     return D
 
-detectors = v_detector(c0, c1, threshold, intended_num_detectors)
+detectors = v_detector()
 
 
 #########################################################

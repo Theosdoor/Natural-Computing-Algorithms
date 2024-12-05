@@ -156,10 +156,8 @@ q = 0.25 # fraction of nests to abandon
 alpha = 0.4*n # scaling factor for Levy flights
 
 timed = True
-max_time = 9.9 # maximum time in seconds
+max_time = 9.8 # maximum time in seconds
 start_t = time.time()
-
-min_f = 0 # keep track of minimum f value found throughout
 
 # for Mantegna
 beta = 1.5
@@ -218,117 +216,94 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
     # randomly generate population of nests
     P = []
     for i in range(N):
-        P.append([random.uniform(min_range[j], max_range[j]) for j in range(n)])
+        nest = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
+        P.append([nest, fitness(nest)]) # store nest and its fitness together
 
-    # compute fitness of each nest
-    fitnesses = [fitness(P[i]) for i in range(N)]
-    min_f = min(fitnesses)
-    minima = [P[fitnesses.index(min_f)]] # list of minima
+    best = min(P, key=lambda x: x[1]) # best nest with lowest fitness
+    minima = [best[0]] # store all minima found (NO FITNESS INCLUDED)
+    for i in range(1, N):
+        if P[i][1] == best[1]:
+            minima.append(P[i][0])
+        else:
+            break
 
     # main loop
     for t in range(num_cyc):
-        # alpha = alpha / (10*t+1)**0.5 # decrease alpha over time
+        # check if any minima can be added
+        for i in range(1, N):
+            if P[i][1] == best[1]:
+                minima.append(P[i][0])
+            else:
+                break
 
         if timed and time.time() - start_t > max_time:
-            print("Time limit reached")
-            return min_f, minima
+            # print("Time limit reached")
+            return minima
         
-        if t % 2000 == 0:
-            print("Cycle {0}, min_f: {1}".format(t, min_f))
-            print(minima)
+        # if t%5000 == 0:
+        #     print("Cycle {0}, best_fitness: {1}, min_f: {2}".format(t, best[1], compute_f(best[0])))
+        # if len(minima) > 1:
+        #     print(minima)
 
         # levy flights from each nest
         for i in range(N):
             # undertake Levy flight from x_i to y_i
-            y = levy_flight(P[i], alpha) # y_i
-            if fitness(y) < fitnesses[i]:
+            y = levy_flight(P[i][0], alpha) # y_i
+            y_fitness = fitness(y)
+            if y_fitness < P[i][1]:
                 # replace x_i with y_i if y_i is better
-                P[i] = y
-                fitnesses[i] = fitness(y)
+                P[i] = [y, y_fitness]
+
+                # update best
+                if y_fitness < best[1]:
+                    best = [y, y_fitness]
 
         # local search with probability p
         local_flights = random.sample(range(N), int(p * N))
         for j in local_flights:
             # undertake local flight
-            y = local_flight(P[j])
-            if fitness(y) < fitnesses[j]:
-                P[j] = y
-                fitnesses[j] = fitness(y)
+            y = local_flight(P[j][0])
+            y_fitness = fitness(y)
+            if y_fitness < P[j][1]:
+                P[j] = [y, y_fitness]
 
             if timed and time.time() - start_t > max_time:
-                print("Time limit reached")
-                return min_f, minima
+                # print("Time limit reached")
+                return minima
 
         # rank nests by fitness
-        sorted_indices = sorted(range(N), key=lambda x: fitnesses[x])
+        P.sort(key=lambda x: x[1])
 
-        # update min_f and minima if necessary
-        if fitnesses[sorted_indices[0]] < min_f:
-            min_f = fitnesses[sorted_indices[0]]
-            for i in range(1, len(sorted_indices)):
-                if fitnesses[sorted_indices[i]] == min_f:
-                    minima.append(P[sorted_indices[i]])
-                else:
-                    break
+        # update best_fitness and minima if necessary
+        if P[0][1] < best[1]:
+            best = P[0]
+            
+            # restart minima collection
+            minima = [best[0]]
 
         # abandon q fraction of worst nests
-        abandoned_nests = sorted_indices[-int(q * N):]
+        abandoned_nests = P[-int(q * N):]
         for k in abandoned_nests:
+            idx = P.index(k)
             # generate new random nest to replace TODO maybe not random?
-            P[k] = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
-            P[k] = levy_flight(P[k], alpha) # levy flight from new nest
-            fitnesses[k] = fitness(P[k])
+            y = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
+            y = levy_flight(y, alpha) # levy flight from new nest
+            P[idx] = [y, fitness(y)]
 
-            # update min_f if necessary
-            if fitnesses[k] < min_f:
-                min_f = fitnesses[k]
-                minima = [P[k]] # reset minima
-            elif fitnesses[k] == min_f:
-                minima.append(P[k])
+            # update best_fitness if necessary
+            if P[idx][1] < best[1]:
+                best = P[idx]
+                minima = [P[k][0]] # reset minima
             
             if timed and time.time() - start_t > max_time:
-                print("Time limit reached")
-                return min_f, minima
+                # print("Time limit reached")
+                return minima
         
-    return min_f, minima
+    return minima
 
-x = cuckoo_search(N, num_cyc, p, q, alpha)
-try:
-    min_f, minima = x
-    minimum = minima[0]
-except:
-    print(x)
-    sys.exit()
-
-print(min_f-100)
-
-# try genetic algorithm with parameters for cuckoo search
-# tune parameters: N, p, q, alpha
-
-
-# population of parameter combos
-# P_size = 100
-# P = []
-# for i in range(P_size):
-#     test_N = np.random.randint(10, 100)
-#     test_p = np.random.uniform(0.1, 1)
-#     test_q = np.random.uniform(0.1, 1)
-#     test_alpha = np.random.uniform(0.5, 2)
-#     test = [test_N, test_p, test_q, test_alpha]
-
-#     while test in P:
-#         # ensure no duplicates
-#         test_N = np.random.randint(10, 100)
-#         test_p = np.random.uniform(0.1, 1)
-#         test_q = np.random.uniform(0.1, 1)
-#         test_alpha = np.random.uniform(0.5, 2)
-#         test = [test_N, test_p, test_q, test_alpha]
-
-#     P.append(test)
-
-
-
-
+minima = cuckoo_search(N, num_cyc, p, q, alpha)
+minimum = minima[0]
+min_f = compute_f(minimum)
 
 
 #########################################################
