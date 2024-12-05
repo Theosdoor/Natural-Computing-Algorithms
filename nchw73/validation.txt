@@ -1,0 +1,52 @@
+
+Validation of student 'nchw73':
+------------------------------
+
+'NegSelTraining.py'      exists
+'NatAlgReal.py'          exists
+'NatAlgDiscreteA.py'     exists
+'NatAlgDiscreteB.py'     exists
+'NatAlgDiscreteC.py'     exists
+'WitnessA.txt'           exists
+'WitnessB.txt'           exists
+'WitnessC.txt'           exists
+*** error: 'NegSelReport.pdf' should be in the folder 'nchw73' but isn't
+*** error: 'NatAlgReport.pdf' should be in the folder 'nchw73' but isn't
+'validation.txt'         exists
+*** warning: 'WitnessB_nchw73_Dec05122511.txt' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05121848.txt' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05122200.txt' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05122015.txt' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05122423.txt' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05121658.txt' is an illegal item
+*** warning: '.venv' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05122235.txt' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05122907.txt' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05121940.txt' is an illegal item
+*** warning: 'WitnessA_nchw73_Dec05122938.txt' is an illegal item
+
+for 'NegSelTraining.py':
+  username = 'nchw73'; algorithm code = 'VD'
+for 'NatAlgReal.py':
+  username = 'nchw73'; algorithm code = 'CS'
+for 'NatAlgDiscreteA.py':
+  username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'A'
+for 'NatAlgDiscreteB.py':
+  username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'B'
+for 'NatAlgDiscreteC.py':
+  username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'C'
+
+for 'WitnessA.txt':
+  username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'A'
+  parameters = [n = 160, num_cyc = 100000, N = 50, p = 0.5, q = 0.25, alpha = 2.0, beta = 1.5]
+  conflicts = 159; elapsed time = 1010.5
+for 'WitnessB.txt':
+  username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'B'
+  parameters = [n = 400, num_cyc = 3000, N = 40, p = 0.5, q = 0.25, alpha = 2.0, beta = 1.5]
+  conflicts = 268; elapsed time = 1907.3
+for 'WitnessC.txt':
+  username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'C'
+  parameters = [n = 800, num_cyc = 3000, N = 20, p = 0.5, q = 0.25, alpha = 2.0, beta = 1.5]
+  conflicts = 212; elapsed time = 3251.7
+
+*** ERRORS: There were fatal errors!

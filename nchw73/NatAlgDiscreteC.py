@@ -263,25 +263,28 @@ import numpy as np
 ##########################################################
 # BASIC parameters
 n = v # if each vertex is a dimension
-num_cyc = 3000
-N = 40 # number of nests
+num_cyc = 250000
+N = 30 # number of nests
 p = 0.50 # fraction of local flights to undertake
 q = 0.25 # fraction of nests to abandon
 alpha = 2 # scaling factor for Levy flights
 beta = 1.5 # parameter for Mantegna's algorithm
 
 # ENHANCED parameters
-p_vertices = 0.01 # fraction of vertices from each of 2 random partitions to consider in local search. running time for local search is p*(v/k)^2
+alpha_decay = False # if True, then alphat decays over time
 alphat = alpha # Levy scaling that changes with time (for Levy flights from new nest)
-w = 6 # number of ranked nests (these influence newly generated nests)
+
+w = 0 # number of ranked nests (these influence newly generated nests)
 p_ranked = 0.4 # probability of picking a ranked nest to generate a new nest via levy flight (alternative is random)
+
 init_greedy = False # if True, then the initial nests are generated using my 'greedy' algorithm. Be warned - they are crap! if False, init nests randomly.
-levy_strat = 'R' # 'R' for randomly swapping 2 vertices, 'FM' for (my version of) the Fiduccia-Mattheyses heuristic
+
+levy_strat = 'R' # 'R' for randomly swapping 2 vertices (basic), 'FM' for (my adaptation of) the Fiduccia-Mattheyses heuristic (enhanced)
 neighbour_limit = 4 # maximum number of neighbours to check in flight
 
 # for timing
 timed = False
-max_time = 400 # maximum time in seconds (60s)
+max_time = 59 # maximum time in seconds (60s)
 
 ###########################################
 #### NOW INCLUDE THE REST OF YOUR CODE ####
@@ -316,30 +319,24 @@ class Vertex:
             if matrix[id][i] == 1:
                 self.degree += 1
                 self.neighbours.append(i)
+        self.neighbours = tuple(self.neighbours) # make immutable
 
     def get_neighbours(self):
-        return self.neighbours[:] # return copy so we can't edit it
+        return list(self.neighbours)[:] # return copy so we can't edit it
 
 vertices = tuple([Vertex(i) for i in range(v)]) # store vertex data to refer to throughout (tuple so it cannot be edited)
 
-# get a count of how many vertices there are of each degree
-deg_counts = {}
-for i in range(v):
-    if vertices[i].degree not in deg_counts:
-        deg_counts[vertices[i].degree] = 1
-    else:
-        deg_counts[vertices[i].degree] += 1
-print(deg_counts)
-# sys.exit()
-
 def get_conflicts(partition):
     '''
-    Get number of conflicts in partition
+    Get number of conflicts in partition.
+
+    Uses vertex class to avoid checking entire matrix each time.
     '''
     conflicts = 0
-    for i in range(v):
-        for j in range(i+1, v):
-            if matrix[i][j] == 1 and partition[i] != partition[j]:
+    for x in vertices:
+        i = x.id
+        for j in x.get_neighbours():
+            if partition[i] != partition[j] and j > i: # check j > i to avoid double counting!
                 conflicts += 1
     return conflicts
 
@@ -449,103 +446,107 @@ def gen_greedy_nest():
 
 def neighbour_swap(partition, a, b, limit=1):
     '''
-    Swap 2 vertices in partition.
+    My heuristic for Levy flight.
+    Inspired by Fiduccia-Mattheyses heuristic as described here: https://web.eecs.umich.edu/~imarkov/pubs/book/b001.pdf.
 
-    limit is the maximum number of swaps to make.
+    1. Swap 2 given vertices in partition.
+    2. Check neighbours of a, b and swap if beneficial.
+
+    limit is the maximum number of swaps allowed.
     '''
     new = partition[:]
     swaps = 0
 
     # define the 2 partitions we're working with
-    A = partition[a]
-    B = partition[b]
+    A_part = partition[a]
+    B_part = partition[b]
 
     # swap a, b
     new[a], new[b] = new[b], new[a]
     swaps += 1
 
-    # get neighbours within same partition to check
-    a_checklist = vertices[a].get_neighbours()
-    b_checklist = vertices[b].get_neighbours()
-    tempAlist = []
-    tempBlist = []
+    if limit == 1:
+        return new # only 1 swap needed
 
-    # store only neighbours in same partition
-    for i in a_checklist:
-        if partition[i] != A:
-            a_checklist.remove(i)
-        else:
-            tempAlist.append(partition[i])
-    for i in b_checklist:
-        if partition[i] != B:
-            b_checklist.remove(i)
-        else:
-            tempBlist.append(partition[i])
+    # check neighbours in same partition
+    a_checklist = []
+    b_checklist = []
+    for i in vertices[a].get_neighbours():
+        if partition[i] == A_part:
+            a_checklist.append(i)
+    for i in vertices[b].get_neighbours():
+        if partition[i] == B_part:
+            b_checklist.append(i)
 
-    print(a_checklist)
-    print(b_checklist)
+    # take limited number of neighbours to consider as specified
+    a_checklist = random.sample(a_checklist, min(neighbour_limit, len(a_checklist)))
+    b_checklist = random.sample(b_checklist, min(neighbour_limit, len(b_checklist)))
 
-    # if len(a_checklist) + len(b_checklist) == 0:
-    #     return new # one vertex has degree 0 ==> no neighbours to check!
+    A_vertices = [] # get list of all vertices in each partition
+    B_vertices = []
 
-    # get v with degree 0 in A and B
+    # get v with degree 0 in A and B (swaps are free! - no conflicts)
     A_deg0 = []
     B_deg0 = []
 
     for i in range(v):
-        if vertices[i].degree == 0:
-            if partition[i] == A:
+        if partition[i] == A_part:
+            if vertices[i].degree == 0:
                 A_deg0.append(i)
-            if partition[i] == B:
+            A_vertices.append(i)
+        if partition[i] == B_part:
+            if vertices[i].degree == 0:
                 B_deg0.append(i)
+            B_vertices.append(i)
 
-    # sort both checklists by degree
-    a_checklist.sort(key=lambda x: vertices[x].degree)
-    b_checklist.sort(key=lambda x: vertices[x].degree)
 
-    # print(a_checklist[0])
-    # print(vertices[a_checklist[0]].degree)
-
-    A_deg1 = []
-
-    # also swap all neighbours with degree 1 if possible for free (guaranteed benefit)
-    for i in a_checklist:
-        if vertices[i].degree == 1:
-            A_deg1.append(i)
-            a_checklist.remove(i)
-        else:
-            break # list sorted so we know we wont finy any more degree 1 vertices
-    
-    if len(A_deg1) + len(A_deg0) > 0: # only worth checking B if we have something to swap it with in A
-        for i in b_checklist:
-            if vertices[i].degree == 1:
-                new[i] = A
-                if len(A_deg1) > 0:
-                    new[A_deg1.pop()] = B
-                else:
-                    new[A_deg0.pop()] = B
-                b_checklist.remove(i)
-                print(get_set_sizes(new), A, B)
-                sys.exit()
+    # make lists the same length by padding with other v in partition
+    while len(a_checklist) != len(b_checklist):
+        if len(a_checklist) < len(b_checklist):
+            if len(A_deg0) > 0:
+                # add v with deg 0 if possible
+                a_checklist.append(A_deg0.pop())
             else:
-                break
+                # otherwise add random v from A
+                a_checklist.append(A_vertices.pop())
+        else:
+            if len(B_deg0) > 0:
+                b_checklist.append(B_deg0.pop())
+            else:
+                b_checklist.append(B_vertices.pop())
 
-
-
+    initial_conflicts = get_conflicts(new)
+  
     # while swaps availble, check neighbours and swap if beneficial
-    # while swaps < limit:
-    #     pass
+    while swaps < limit and (len(a_checklist) + len(b_checklist) > 0):
+        # pick two more vertices to swap
+        if len(a_checklist) > 0:
+            a = random.choice(a_checklist)
+        else:
+            a = random.choice
+        b = random.choice(b_checklist)
+
+        # does it imporve the partition?
+        new[a], new[b] = new[b], new[a]
+        new_conflicts = get_conflicts(new)
+        gain = initial_conflicts - new_conflicts
+
+        if gain <= 0: # i.e. no improvement
+            # Revert move and pick new a,b
+            new[a], new[b] = new[b], new[a]
+            a_checklist.remove(a)
+            b_checklist.remove(b)
+            continue
+
+        # otherwise, keep the swap
+        swaps += 1
+        initial_conflicts = new_conflicts
+
+        # update checklists
+        a_checklist.remove(a)
+        b_checklist.remove(b)
 
     return new
-
-    
-
-    # swap u, v
-    # check neighbours of u, v & add to checklist to see if swapping them along with u,v helps
-
-
-    return new
-
 
 
 def levy_flight(partition, alpha):
@@ -554,8 +555,7 @@ def levy_flight(partition, alpha):
 
     2 strategies:
     1. Randomly swap 2 vertices M times (where M is from Levy dist).
-    2. M passes of best possible swaps between 2 random partitions.
-        Inspired by Fiduccia-Mattheyses heuristic as described here: https://web.eecs.umich.edu/~imarkov/pubs/book/b001.pdf.
+    2. Allow up to M heuristic neighbour swaps
     '''
     new = partition[:]
 
@@ -569,128 +569,23 @@ def levy_flight(partition, alpha):
     step = abs(U / abs(V) ** (1 / beta))
     M = int(alpha * step)
     
-    # swap M random pairs of vertices
-    for _ in range(M):
+    # do levy strategy
+    if levy_strat == 'R':
+        # swap M random pairs of vertices
+        for _ in range(M):
+            u = random.randint(0, n-1)
+            v = random.randint(0, n-1)
+            while new[u] == new[v]: # make sure we're swapping vertices between different partitions
+                v = random.randint(0, n-1)
+            new[u], new[v] = new[v], new[u]
+    elif levy_strat == 'FM':
         u = random.randint(0, n-1)
         v = random.randint(0, n-1)
         while new[u] == new[v]: # make sure we're swapping vertices between different partitions
             v = random.randint(0, n-1)
-        # new[u], new[v] = new[v], new[u]
         new = neighbour_swap(new, u, v, M)
 
     return new
-
-    # pick 2 random (different!) partition sets
-    A, B = random.sample(range(1, sets_in_partition+1), 2)
-
-    A_vertices = []
-    B_vertices = []
-    for i in range(len(partition)):
-        if partition[i] == A:
-            A_vertices.append(i)
-        elif partition[i] == B:
-            B_vertices.append(i)
-    # we're gonna swap a vertex from A to B to improve the partition
-
-    # Initial conflicts before move
-    initial_conflicts = get_conflicts(new)
-
-    # take a fraction of vertices from each set
-    A_vertices = random.sample(A_vertices, int(p_vertices * len(A_vertices)))
-    B_vertices = random.sample(B_vertices, int(p_vertices * len(B_vertices)))
-    
-    # Try to move a vertex to potentially reduce conflicts
-    best_swap = None
-    best_gain = 0
-
-    for a in A_vertices:
-        for b in B_vertices:
-
-            # Temporary move
-            new[a], new[b] = new[b], new[a]
-            new_conflicts = get_conflicts(new)
-            
-            # Compute gain (+ve if good, -ve if bad)
-            gain = initial_conflicts - new_conflicts
-
-            if gain <= 0: # i.e. no improvement
-                # Revert move
-                new[a], new[b] = new[b], new[a]
-            continue
-
-
-            
-            # Track best move
-            if gain > best_gain:
-                best_swap = (a, b)
-                best_gain = gain
-
-                # Break early if a very good swap is found
-                if gain > initial_conflicts * 0.01: 
-                    break
-       
-        # Break outer loop if a very good swap is found
-        # if best_gain > initial_conflicts * 0.1:
-        #     break
-        
-    
-    # Apply best move if found
-    # if best_swap:
-    #     a, b = best_swap
-    #     new[a] = B
-    #     new[b] = A
-
-    return new
-
-
-    # for _ in range(100): # continue passes until no improvement found
-    #     unlocked_v = A_vertices + B_vertices # keep track of which vertices are unlocked
-    #     total_cost = fitness(new) # current fitness
-    #     best_f = total_cost # best fitness found so far
-    #     best_soln = new[:] # best solution found so far
-
-    #     # calc gain for each possible swap
-    #     # +ve gain reduces fitness (i.e. conflicts)
-    #     gains_stack = [] # store in order with highest gain at front
-
-    #     for a in A_vertices:
-    #         for b in B_vertices:
-    #             temp = new[:]
-    #             temp[a] = B
-    #             temp[b] = A
-    #             swap_gain = total_cost - fitness(temp) # +ve if good, -ve if bad
-
-    #             # add to queue
-    #             gains_stack.append((swap_gain, a, b))
-        
-    #     # sort queue by gain so largest gain is at back
-    #     gains_stack.sort(key=lambda x: x[0])
-
-    #     while len(unlocked_v) > 0:
-    #         # pick highest gain move
-    #         swap_gain, a, b = gains_stack.pop()
-
-    #         # do it and lock a, b
-    #         new[a] = B
-    #         new[b] = A
-    #         unlocked_v.remove(a)
-    #         unlocked_v.remove(b)
-    #         total_cost = fitness(new)
-
-    #         # update gains for vertices affected by the swap
-
-            
-    #         # sort queue by gain so largest gain is at back
-    #         gains_stack.sort(key=lambda x: x[0])
-
-    #         # check if we've improved
-    #         if total_cost < best_f:
-    #             best_f = total_cost
-    #             best_soln = new[:]
-    #     if best_f < total_cost:
-    #         new = best_soln[:]
-    #     else:
-    #         break
 
 def local_flight(partition):
     '''
@@ -706,8 +601,7 @@ def local_flight(partition):
     v = random.randint(0, n-1)
     while new[u] == new[v]: # make sure we're swapping vertices between different partitions
         v = random.randint(0, n-1)
-    # new[u], new[v] = new[v], new[u]
-    new = neighbour_swap(new, u, v, 1) # limit to 1 swap
+    new[u], new[v] = new[v], new[u]
     return new
                     
 
@@ -745,14 +639,12 @@ def cuckoo_search(N, num_cyc, p, q):
     # main loop
     for t in range(num_cyc):
         if timed and time.time() - start_t > max_time:
-            print("Time limit reached")
+            # print("Time limit reached")
             return best[0]
         
         # print updates
-        if t % 50 == 0 or t == 5:
+        if t%50 == 0:
             print("\nCycle {0}, best_fitness: {1}".format(t, best[1]))
-            set_sizes = get_set_sizes(best[0])
-            print("Set sizes: ", set_sizes)
             if timed:
                 print("Time remaining: {0}s".format(int(max_time - (time.time() - start_t))))
            
@@ -779,7 +671,7 @@ def cuckoo_search(N, num_cyc, p, q):
                 P[j] = [y, y_fitness]
 
             if timed and time.time() - start_t > max_time:
-                print("Time limit reached")
+                # print("Time limit reached")
                 return best[0]
 
         # rank nests by fitness and select w best
@@ -791,18 +683,20 @@ def cuckoo_search(N, num_cyc, p, q):
         if P[0][1] < best[1]:
             best = P[0]
 
-            if best[1] == 0:
+            if best[1] == 0: # optimal solution found
                 return best[0]
         
+        if alpha_decay:
+            alphat = alphat / math.sqrt(t+1) # decrease alpha over time
+
         # abandon q fraction of worst nests & replace
-        alphat = alphat / math.sqrt(t+1) # decrease alpha over time
         abandoned_nests = P[-int(q * N):]
         for k in abandoned_nests:
             idx = P.index(k)
-            if random.random() < p_ranked:
+            if w>0 and random.random() < p_ranked:
                 # pick one of ranked nests with weight according to fitness
                 y = random.choices(ranked_nests, weights=[1/nest[1] for nest in ranked_nests])[0][0]
-                # y = levy_flight(y, alphat) # levy flight from best nest
+                y = levy_flight(y, alphat) # levy flight from best nest
             else:
                 # generate new random nest to replace abandoned one
                 y = gen_rand_nest()
@@ -817,13 +711,15 @@ def cuckoo_search(N, num_cyc, p, q):
                     return best[0]
             
             if timed and time.time() - start_t > max_time:
-                print("Time limit reached")
+                # print("Time limit reached")
                 return best[0]
         
     return best[0]
 
 partition = cuckoo_search(N, num_cyc, p, q)
 conflicts = get_conflicts(partition) # I get conflicts here, just in case fitness != number of conflicts!
+
+print('Final conflicts:', conflicts)
 
 #########################################################
 #### YOU SHOULD HAVE NOW FINISHED ENTERING YOUR CODE ####

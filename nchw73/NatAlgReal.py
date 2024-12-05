@@ -285,7 +285,7 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
         abandoned_nests = P[-int(q * N):]
         for k in abandoned_nests:
             idx = P.index(k)
-            # generate new random nest to replace TODO maybe not random?
+            # generate new random nest to replace
             y = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
             y = levy_flight(y, alpha) # levy flight from new nest
             P[idx] = [y, fitness(y)]
