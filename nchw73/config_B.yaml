@@ -1,0 +1,22 @@
+# Configuration for Graph Partitioning Problem B
+graph_digit: "B"
+
+# Algorithm parameters - BASIC
+num_cyc: 30000
+N: 40  # number of nests
+p: 0.7  # fraction of local flights to undertake
+q: 0.25  # fraction of nests to abandon
+alpha: 2  # scaling factor for Levy flights
+beta: 1.5  # parameter for Mantegna's algorithm
+
+# Algorithm parameters - ENHANCED
+alpha_decay: true  # if true, alpha decays over time
+w: 6  # number of ranked nests (these influence newly generated nests)
+p_ranked: 0.8  # probability of picking a ranked nest to generate new nest via levy flight
+init_greedy: false  # if true, initial nests use greedy algorithm (not recommended)
+levy_strat: "R"  # 'R' for random swaps (basic), 'FM' for Fiduccia-Mattheyses heuristic (enhanced)
+neighbour_limit: 4  # maximum number of neighbours to check in flight
+
+# Timing
+timed: true
+max_time: 58  # maximum time in seconds

@@ -29,7 +29,9 @@ nchw73/                          # Main implementation folder
 ├── NegSelTesting.py            # Detector set validation
 ├── TrainTune.py                # Parameter tuning experiments
 ├── NatAlgReal.py               # Cuckoo Search continuous optimization
-├── NatAlgDiscreteA/B/C.py      # Cuckoo Search graph partitioning (3 variants)
+├── NatAlgDiscrete.py           # Unified Cuckoo Search graph partitioning
+├── NatAlgDiscreteA/B/C.py      # [LEGACY] Graph partitioning variants
+├── config_A/B/C.yaml           # Configuration files for graph problems
 ├── NegSelReport.md             # Methodology and tuning details for NegSel
 ├── NatAlgReport.md             # Methodology and tuning details for Cuckoo Search
 └── utils.py                    # Shared utility functions
@@ -83,6 +85,18 @@ uv run python nchw73/NatAlgReal.py
 ```
 
 ### Discrete Optimization
+
+**Modern Approach (Unified Script with YAML Configs):**
+```bash
+# Run with configuration files for each problem
+uv run python nchw73/NatAlgDiscrete.py nchw73/config_A.yaml  # Graph A (160 vertices)
+uv run python nchw73/NatAlgDiscrete.py nchw73/config_B.yaml  # Graph B (400 vertices)
+uv run python nchw73/NatAlgDiscrete.py nchw73/config_C.yaml  # Graph C (800 vertices)
+# Output: results/Witness<digit>_<timestamp>.txt
+# Features: tqdm progress bars, parameterized configs, cleaner code
+```
+
+**Legacy Approach (Original Submission):**
 ```bash
 # Test on different graphs by running each variant
 uv run python nchw73/NatAlgDiscreteA.py  # Graph A (160 vertices)

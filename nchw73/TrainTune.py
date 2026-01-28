@@ -369,15 +369,3 @@ print("   - detection rate   TP/(TP+FN) = {0}%".format(det_rate))
 print("   - false alarm rate FP/(FP+TN) = {0}%".format(far))
 print("   - elapsed testing time        = {0}".format(testing_time))
 
-
-
-
-
-
-
-
-
-
-
-
-    

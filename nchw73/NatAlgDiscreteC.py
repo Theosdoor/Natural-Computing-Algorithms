@@ -79,133 +79,7 @@ else:
 
 start_time = time.time()
 
-#########################################################################################
-#### YOU SHOULDN'T HAVE TOUCHED *ANYTHING* UP UNTIL NOW APART FROM SUPPLYING VALUES  ####
-#### FOR 'username', 'alg_code', 'problem_code' and 'graph_digit' AS REQUESTED ABOVE ####
-####                        NOW READ THE FOLLOWING CAREFULLY!                        ####
-#########################################################################################
 
-# FOR ALL OF THE RESERVED VARIABLES BELOW, YOU MUST ENSURE THAT ON TERMINATION THE TYPE
-# OF THE RESPECTIVE VARIABLE IS AS SHOWN.
-
-# For the problem GC, the graph data has now been read into the following reserved variables:
-#   - 'v' = the number of vertices of the graph                                  int
-#   - 'edges' = a list of the edges of the graph (just in case you need them)    list
-#   - 'matrix' = the full adjacency matrix of the graph                          list
-#   - 'colours' = the maximum number of colours to be used when colouring        int
-
-# For the problem CL, the graph data has now been read into the following reserved variables:
-#   - 'v' = the number of vertices of the graph                                  int
-#   - 'edges' = a list of the edges of the graph (just in case you need them)    list
-#   - 'matrix' = the full adjacency matrix of the graph                          list
-
-# For the problem GP, the graph data has now been read into the following reserved variables:
-#   - 'v' = the number of vertices of the graph                                  int
-#   - 'edges' = a list of the edges of the graph (just in case you need them)    list
-#   - 'matrix' = the full adjacency matrix of the graph                          list
-#   - 'sets_in_partition' = the number of sets in any partition                  int
-
-# These are reserved variables and need to be treated as such, i.e., use these names for these
-# concepts and don't re-use the names.
-
-# For the problem GC, you will produce a colouring in the form of a list of v integers called
-# 'colouring' where the entries range from 1 to 'colours'. Note! 0 is disallowed as a colour!
-# You will also produce an integer in the variable 'conflicts' which denotes how many edges
-# are such that the two incident vertices are identically coloured (of course, your aim is to
-# MINIMIZE the value of 'conflicts').
-
-# For the problem CL, you will produce a clique in the form of a list of v integers called
-# 'clique' where the entries are either 0 or 1. If 'clique[i]' = 1 then this denotes that the
-# vertex i is in the clique with 'clique[i]' = 0 denoting otherwise.
-# You will also produce an integer in the variable 'clique_size' which denotes how many vertices
-# are in your clique (of course, your aim is to MAXIMIZE the value of 'clique_size').
-
-# For the problem GP, you will produce a partition in the form of a list of v integers called
-# 'partition' where the entries are in {1, 2, ..., 'sets_in_partition'}. Note! 0 is not the
-# name of a partition set! If 'partition[i]' = j then this denotes that the vertex i is in the
-# partition set j.
-# You will also produce an integer in the variable 'conflicts' which denotes how many edges are
-# incident with vertices in different partition sets (of course, your aim is to MINIMIZE the
-# value of 'conflicts').
-
-# In consequence, the following additional variables are reserved:
-#   - 'colouring'                       list of int
-#   - 'conflicts'                       int
-#   - 'clique'                          list of int
-#   - 'clique_size'                     int
-#   - 'partition'                       list of int
-
-# The various algorithms all have additional parameters (see the lectures). These parameters
-# are detailed below and are referred to using the following reserved variables.
-#
-# AB (Artificial Bee Colony)
-#   - 'n' = dimension of the optimization problem       int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of employed bees / food sources      int
-#   - 'M' = number of onlooker bees                     int
-#   - 'lambbda' = limit threshold                       float or int
-#
-# FF (Firefly)
-#   - 'n' = dimension of the optimization problem       int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of fireflies                         int
-#   - 'lambbda' = light absorption coefficient          float or int
-#   - 'alpha' = scaling parameter                       float or int
-#
-# CS (Cuckoo Search)
-#   - 'n' = dimension of optimization problem           int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of nests                             int
-#   - 'p' = fraction of local flights to undertake      float or int
-#   - 'q' = fraction of nests to abandon                float or int
-#   - 'alpha' = scaling factor for Levy flights         float or int
-#   - 'beta' = parameter for Mantegna's algorithm       float or int
-#
-# WO (Whale Optimization)
-#   - 'n' = dimension of optimization problem           int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of whales                            int
-#   - 'b' = spiral constant                             float or int
-#
-# BA (Bat)
-#   - 'n' = dimension of optimization problem           int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of bats                              int
-#   - 'sigma' = scaling factor                          float or int
-#   - 'f_min' = best_colouring frequency                       float or int
-#   - 'f_max' = maximum frequency                       float or int
-
-# These are reserved variables and need to be treated as such, i.e., use these names for these
-# parameters and don't re-use the names. Don't forget to ensure that on termination all the above
-# variables have the stated type. In particular, if you use specific numpy types then you'll need
-# to ensure that they are changed prior to termination.
-
-# INITIALIZE THE ACTUAL PARAMETERS YOU USE FOR YOUR ALGORITHM BELOW. ENSURE THAT YOU INITIALIZE
-# *ALL* OF THE PARAMETERS REQUIRED APPROPRIATELY (SEE ABOVE) FOR YOUR CHOSEN ALGORITHM.
-
-# In particular, if you are implementing, say, Artificial Bee Colony and you choose to encode
-# your bees as tuples of length v (where v is the number of vertices in the input graph) then
-# you must initialize n as v (of course, you might have some other encoding where n is different
-# to v and if so then you would initialize n accordingly.)
-
-# Also, you may introduce additional parameters if you wish (below) but they won't get written
-# to the output file.
-
-# In summary, before you input the bulk of your code, ensure that you:
-# - import any (legal) modules you wish to use in the space provided below 
-# - initialize your parameters in the space provided below
-# - ensure that reserved variables have the correct type on termination.
-
-###########################################
-#### NOW YOU CAN ENTER YOUR CODE BELOW ####
-###########################################
-####################################################
-#### FIRST IMPORT ANY MODULES IMMEDIATELY BELOW ####
-####################################################
-
-##########################################################
-#### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
-##########################################################
 # BASIC parameters
 n = v # if each vertex is a dimension
 num_cyc = 25000
@@ -231,9 +105,6 @@ neighbour_limit = 4 # maximum number of neighbours to check in flight
 timed = True
 max_time = 58 # maximum time in seconds (60s)
 
-###########################################
-#### NOW INCLUDE THE REST OF YOUR CODE ####
-###########################################
 # NON-EDITABLE parameters
 # for Mantegna
 sigma_sq = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
@@ -669,309 +540,55 @@ conflicts = get_conflicts(partition) # I get conflicts here, just in case fitnes
 
 print('Final conflicts:', conflicts)
 
-#########################################################
-#### YOU SHOULD HAVE NOW FINISHED ENTERING YOUR CODE ####
-####     DO NOT TOUCH ANYTHING BELOW THIS COMMENT    ####
-#########################################################
-
-# At this point in the execution, you should have computed
-# - the list 'colouring' and integer 'conflicts', if you are solving GC;
-# - the list 'clique' and the integer 'clique_size', if you are solving CL; or
-# - the list 'partition' and the integer 'conflicts', if you are solving GP.
-
-# What follows is error-checking code. Your output file will be saved only if
-# no errors are thrown. If there are errors, you'll be told what they are.
-
-# ANY OUTPUT WILL NOT BE SAVED TO FILE UNTIL NO ERRORS ARE THROWN!
 
 now_time = time.time()
 elapsed_time = round(now_time - start_time, 1)
+    
+timestamp = get_a_timestamp_for_an_output_file()
+witness_set = location_of_witness_set(graph_digit, timestamp)
 
-error_flag = False
+f = open(witness_set, "w")
 
-if not problem_code in ["GC", "GP", "CL"]:
-    print("*** error: 'problem_code' = {0} is illegal".format(problem_code))
-    error_flag = True
-
+f.write("problem code = {0}\n".format(problem_code))
+f.write("graph = {0}Graph{1}.txt with (|V|,|E|) = ({2},{3})\n".format(problem_code, graph_digit, v, len(edges)))
 if problem_code == "GC":
-    if type(conflicts) != int:
-        print("*** error: 'conflicts' is not an integer: it is {0} and it has type {1})".format(conflicts, type(conflicts)))
-        error_flag = True
-    elif conflicts < 0:
-        print("*** error: 'conflicts' should be non-negative whereas it is {0}".format(conflicts))
-        error_flag = True
-    elif type(colouring) != list:
-        print("*** error: 'colouring' is not a list (it has type {0})".format(type(colouring)))
-        error_flag = True
-    elif len(colouring) != v:
-        print("*** error: 'colouring' is a list of length {0} whereas it should have length {1}".format(len(colouring), v))
-        error_flag = True
-    else:
-        for i in range(0, v):
-            if type(colouring[i]) != int:
-                print("*** error: 'colouring[{0}]' = {1} is not an integer (it has type {2})".format(i, colouring[i], type(colouring[i])))
-                error_flag = True
-                break
-            elif colouring[i] < 1 or colouring[i] > colours:
-                print("*** error: 'colouring[{0}]' = {1} which is a bad colour (colours must range from 1 up to 'colours' = {2})".format(i, colouring[i], colours))
-                error_flag = True
-                break
-    if error_flag == False:
-        true_conflicts = 0
-        for i in range(0, v):
-            for j in range(i + 1, v):
-                if matrix[i][j] == 1 and colouring[i] == colouring[j]:
-                    true_conflicts = true_conflicts + 1
-        if conflicts != true_conflicts:
-            print("*** error: you claim {0} but there are actually {1} conflicts\n".format(conflicts, true_conflicts))
-            error_flag = True
-
-if problem_code == "GP":
-    if type(conflicts) != int:
-        print("*** error: 'conflicts' is not an integer: it is {0} and it has type {1})".format(conflicts, type(conflicts)))
-        error_flag = True
-    elif conflicts < 0:
-        print("*** error: 'conflicts' should be non-negative where it is {0}".format(conflicts))
-        error_flag = True
-    elif type(partition) != list:
-        print("*** error: 'partition' is not a list (it has type {0})".format(type(partition)))
-        error_flag = True
-    elif len(partition) != v:
-        print("*** error: 'partition' is a list of length {0} whereas it should have length {1}".format(len(partition), v))
-        error_flag = True
-    else:
-        for i in range(0, v):
-            if type(partition[i]) != int:
-                print("*** error: 'partition[{0}]' = {1} is not an integer (it has type {2})".format(i, partition[i], type(partition[i])))
-                error_flag = True
-                break
-            elif partition[i] < 1 or partition[i] > sets_in_partition:
-                print("*** error: 'partition[{0}]' = {1} which is a bad partite set (partite set names must range from 1 up to 'sets_in_partition' = {2})".format(i, partition[i], sets_in_partition))
-                error_flag = True
-                break
-    if error_flag == False:
-        true_conflicts = 0
-        for i in range(0, v):
-            for j in range(i + 1, v):
-                if matrix[i][j] == 1 and partition[i] != partition[j]:
-                    true_conflicts = true_conflicts + 1
-        if conflicts != true_conflicts:
-            print("*** error: you claim {0} but there are actually {1} conflicts\n".format(conflicts, true_conflicts))
-            error_flag = True
-
-if problem_code == "CL":
-    if type(clique_size) != int:
-        print("*** error: 'clique_size' is not an integer: it is {0} and it has type {1})".format(clique_size, type(clique_size)))
-        error_flag = True
-    elif clique_size < 0:
-        print("*** error: 'clique_size' should be non-negative where it is {0}".format(clique_size))
-        error_flag = True
-    elif type(clique) != list:
-        print("*** error: 'clique' is not a list (it has type {0})".format(type(clique)))
-        error_flag = True
-    elif len(clique) != v:
-        print("*** error: 'clique' is a list of length {0} whereas it should have length {1}".format(len(clique), v))
-        error_flag = True
-    else:
-        for i in range(0, v):
-            if type(clique[i]) != int:
-                print("*** error: 'clique[{0}]' = {1} is not an integer (it has type {2})".format(i, clique[i], type(clique[i])))
-                error_flag = True
-                break
-            elif clique[i] < 0 or clique[i] > 1:
-                print("*** error: 'clique[{0}]' = {1} where as all entries should be 0 or 1".format(i, colouring[i]))
-                error_flag = True
-                break
-    if error_flag == False:
-        true_size = 0
-        for i in range(0, v):
-            if clique[i] == 1:
-                true_size = true_size + 1
-        if clique_size != true_size:
-            print("*** error: you claim a clique of size {0} but the list contains {1} ones\n".format(clique_size, true_size))
-            error_flag = True
-        else:
-            bad_edges = 0
-            bad_clique = False
-            for i in range(0, v):
-                for j in range(i + 1, v):
-                    if clique[i] == 1 and clique[j] == 1 and matrix[i][j] != 1:
-                        bad_edges = bad_edges + 1
-                        bad_clique = True
-            if bad_clique == True:
-                print("*** error: the clique of claimed size {0} is not a clique as there are {1} missing edges\n".format(clique_size, bad_edges))
-                error_flag = True
-
-if not alg_code in ["AB", "FF", "CS", "WO", "BA"]:
-    print("*** error: 'alg_code' = {0} is invalid".format(alg_code))
-    error_flag = True
-
-if type(n) != int:
-    print("*** error: 'n' is not an integer: it is {0} and it has type {1})".format(n, type(n)))
-if type(num_cyc) != int:
-    print("*** error: 'num_cyc' is not an integer: it is {0} and it has type {1})".format(num_cyc, type(num_cyc)))
-
+    f.write("colours to use = {0}\n".format(colours))
+elif problem_code == "GP":
+    f.write("number of partition sets = {0}\n".format(sets_in_partition))
+f.write("algorithm code = {0}\n".format(alg_code))
 if alg_code == "AB":
-    if type(N) != int:
-        print("*** error: 'N' is not an integer: it is {0} and it has type {1})".format(N, type(N)))
-        error_flag = True
-    if type(M) != int:
-        print("*** error: 'M' is not an integer: it is {0} and it has type {1})".format(M, type(M)))
-        error_flag = True
-    if type(lambbda) != int and type(lambbda) != float:
-        print("*** error: 'lambbda' is not an integer or a float: it is {0} and it has type {1})".format(lambbda, type(lambbda)))
-        error_flag = True
+    f.write("associated parameters [n, num_cyc, N, M, lambbda] = ")
+    f.write("[{0}, {1}, {2}, {3}, {4}]\n".format(n,num_cyc, N, M, lambbda))
+elif alg_code == "FF":
+    f.write("associated parameters [n, num_cyc, N, lambbda, alpha] = ")
+    f.write("[{0}, {1}, {2}, {3}, {4}]\n".format(n, num_cyc, N, lambbda, alpha))
+elif alg_code == "CS":
+    f.write("associated parameters [n, num_cyc, N, p, q, alpha, beta] = ")
+    f.write("[{0}, {1}, {2}, {3}, {4}, {5}, {6}]\n".format(n, num_cyc, N, p, q, alpha, beta))
+elif alg_code == "WO":
+    f.write("associated parameters [n, num_cyc, N, b] = ")
+    f.write("[{0}, {1}, {2}, {3}]\n".format(n, num_cyc, N, b))
+elif alg_code == "BA":
+    f.write("associated parameters [n, num_cyc, sigma, f_max, f_min] = ")
+    f.write("[{0}, {1}, {2}, {3}, {4}]\n".format(n, num_cyc, sigma, f_max, f_min))
+if problem_code == "GC" or problem_code == "GP":
+    f.write("conflicts = {0}\n".format(conflicts))
+f.write("elapsed time = {0}\n".format(elapsed_time))
+now = datetime.now()
+date_time = now.strftime("%d/%m/%Y-%H:%M:%S")
+f.write("date-time = {0}\n".format(date_time))
 
-if alg_code == "FF":
-    if type(N) != int:
-        print("*** error: 'N' is not an integer: it is {0} and it has type {1})".format(N, type(N)))
-        error_flag = True
-    if type(lambbda) != int and type(lambbda) != float:
-        print("*** error: 'lambbda' is not an integer or a float: it is {0} and it has type {1})".format(lambbda, type(lambbda)))
-        error_flag = True
-    if type(alpha) != int and type(alpha) != float:
-        print("*** error: 'alpha' is not an integer or a float: it is {0} and it has type {1})".format(alpha, type(alpha)))
-        error_flag = True
+alg_number = ord(alg_code[0]) + ord(alg_code[1])
+len_date_time = len(date_time)
+date_time_number = 0
+for i in range(0, len_date_time):
+    date_time_number = date_time_number + ord(date_time[i])
 
-if alg_code == "CS":
-    if  type(N) != int:
-        print("*** error: 'N' is not an integer: it is {0} and it has type {1})".format(N, type(N)))
-        error_flag = True
-    if type(p) != int and type(p) != float:
-        print("*** error: 'p' is not an integer or a float: it is {0} and it has type {1})".format(p, type(p)))
-        error_flag = True
-    if type(q) != int and type(q) != float:
-        print("*** error: 'q' is not an integer or a float: it is {0} and it has type {1})".format(q, type(q)))
-        error_flag = True
-    if type(alpha) != int and type(alpha) != float:
-        print("*** error: 'alpha' is not an integer or a float: it is {0} and it has type {1})".format(alpha, type(alpha)))
-        error_flag = True
-    if type(beta) != int and type(beta) != float:
-        print("*** error: 'beta' is not an integer or a float: it is {0} and it has type {1})".format(beta, type(beta)))
-        error_flag = True
+diff = abs(partition[0] - partition[v - 1])
+for i in range(0, v - 1):
+    diff = diff + abs(partition[i + 1] - partition[i])       
 
-if alg_code == "WO":
-    if type(N) != int:
-        print("*** error: 'N' is not an integer: it is {0} and it has type {1})".format(N, type(N)))
-        error_flag = True
-    if type(b) != int and type(b) != float:
-        print("*** error: 'b' is not an integer or a float: it is {0} and it has type {1})".format(b, type(b)))
-        error_flag = True
 
-if alg_code == "BA":
-    if type(sigma) != int and type(sigma) != float:
-        print("*** error: 'sigma' is not an integer or a float: it is {0} and it has type {1})".format(sigma, type(sigma)))
-        error_flag = True
-    if type(f_min) != int and type(f_min) != float:
-        print("*** error: 'f_min' is not an integer or a float: it is {0} and it has type {1})".format(f_min, type(f_min)))
-        error_flag = True
-    if type(f_max) != int and type(f_max) != float:
-        print("*** error: 'f_max' is not an integer or a float: it is {0} and it has type {1})".format(f_max, type(f_max)))
-        error_flag = True
-
-if error_flag == False:
+f.close()
     
-    timestamp = get_a_timestamp_for_an_output_file()
-    witness_set = location_of_witness_set(graph_digit, timestamp)
-
-    f = open(witness_set, "w")
-
-    f.write("problem code = {0}\n".format(problem_code))
-    f.write("graph = {0}Graph{1}.txt with (|V|,|E|) = ({2},{3})\n".format(problem_code, graph_digit, v, len(edges)))
-    if problem_code == "GC":
-        f.write("colours to use = {0}\n".format(colours))
-    elif problem_code == "GP":
-        f.write("number of partition sets = {0}\n".format(sets_in_partition))
-    f.write("algorithm code = {0}\n".format(alg_code))
-    if alg_code == "AB":
-        f.write("associated parameters [n, num_cyc, N, M, lambbda] = ")
-        f.write("[{0}, {1}, {2}, {3}, {4}]\n".format(n,num_cyc, N, M, lambbda))
-    elif alg_code == "FF":
-        f.write("associated parameters [n, num_cyc, N, lambbda, alpha] = ")
-        f.write("[{0}, {1}, {2}, {3}, {4}]\n".format(n, num_cyc, N, lambbda, alpha))
-    elif alg_code == "CS":
-        f.write("associated parameters [n, num_cyc, N, p, q, alpha, beta] = ")
-        f.write("[{0}, {1}, {2}, {3}, {4}, {5}, {6}]\n".format(n, num_cyc, N, p, q, alpha, beta))
-    elif alg_code == "WO":
-        f.write("associated parameters [n, num_cyc, N, b] = ")
-        f.write("[{0}, {1}, {2}, {3}]\n".format(n, num_cyc, N, b))
-    elif alg_code == "BA":
-        f.write("associated parameters [n, num_cyc, sigma, f_max, f_min] = ")
-        f.write("[{0}, {1}, {2}, {3}, {4}]\n".format(n, num_cyc, sigma, f_max, f_min))
-    if problem_code == "GC" or problem_code == "GP":
-        f.write("conflicts = {0}\n".format(conflicts))
-    elif problem_code == "CL":
-        f.write("clique size = {0}\n".format(clique_size))
-    f.write("elapsed time = {0}\n".format(elapsed_time))
-    now = datetime.now()
-    date_time = now.strftime("%d/%m/%Y-%H:%M:%S")
-    f.write("date-time = {0}\n".format(date_time))
-    
-    alg_number = ord(alg_code[0]) + ord(alg_code[1])
-    len_date_time = len(date_time)
-    date_time_number = 0
-    for i in range(0, len_date_time):
-        date_time_number = date_time_number + ord(date_time[i])
-    if problem_code == "GC":
-        diff = abs(colouring[0] - colouring[v - 1])
-        for i in range(0, v - 1):
-            diff = diff + abs(colouring[i + 1] - colouring[i])
-    elif problem_code == "GP":
-        diff = abs(partition[0] - partition[v - 1])
-        for i in range(0, v - 1):
-            diff = diff + abs(partition[i + 1] - partition[i])       
-    elif problem_code == "CL":
-        diff = abs(clique[0] - clique[v - 1])
-        for i in range(0, v - 1):
-            diff = diff + abs(clique[i + 1] - clique[i])
-    certificate = user_number + alg_number + date_time_number + diff
-    f.write("certificate = {0}\n".format(certificate))
-
-    if problem_code == "GC":
-        for i in range(0, v):
-            f.write("{0},".format(colouring[i]))
-            if (i + 1) % 40 == 0:
-                f.write("\n")
-        if v % 40 != 0:
-            f.write("\n")
-    if problem_code == "GP":
-        for i in range(0, v):
-            f.write("{0},".format(partition[i]))
-            if (i + 1) % 40 == 0:
-                f.write("\n")
-        if v % 40 != 0:
-            f.write("\n")
-    if problem_code == "CL":
-        for i in range(0, v):
-            f.write("{0},".format(clique[i]))
-            if (i + 1) % 40 == 0:
-                f.write("\n")
-        if v % 40 != 0:
-            f.write("\n")
-
-    f.close()
-        
-    print("witness file 'Witness{0}_{1}.txt' saved".format(graph_digit, timestamp))
-
-else:
-
-    print("\n*** ERRORS: the witness file has not been saved - fix your errors first!")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+print("witness file 'Witness{0}_{1}.txt' saved".format(graph_digit, timestamp))

@@ -1,19 +1,3 @@
-########################################
-#### PLEASE READ ALL COMMENTS BELOW ####
-########################################
-
-# This is the program 'NegSelTesting.py' that allows you to test a detector set that you have constructed
-# using your implementation 'NegSelTraining.py' against points from Self and points from non-Self
-# - the detector set is read from the detector-set file 'detector.txt'
-# - the points from Self and non-Self are in the files 'self_testing.txt' and 'non_self_testing.txt', respectively.
-#
-# The file 'detector.txt' must be in the format as supplied as output from 'NegSelTraining.py'.
-# It is assumed that 'NegSelTesting.py', 'detector.txt', 'self_testing.txt' and 'non_self_testing.txt' are in the same folder.
-
-##############################################################
-#### YOU SHOULD NOT AMEND ANYTHING IN THIS PROGRAM AT ALL ####
-##############################################################
-
 import sys
 import os.path
 import math

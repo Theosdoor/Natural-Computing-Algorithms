@@ -79,127 +79,6 @@ else:
 
 start_time = time.time()
 
-#########################################################################################
-#### YOU SHOULDN'T HAVE TOUCHED *ANYTHING* UP UNTIL NOW APART FROM SUPPLYING VALUES  ####
-#### FOR 'username', 'alg_code', 'problem_code' and 'graph_digit' AS REQUESTED ABOVE ####
-####                        NOW READ THE FOLLOWING CAREFULLY!                        ####
-#########################################################################################
-
-# FOR ALL OF THE RESERVED VARIABLES BELOW, YOU MUST ENSURE THAT ON TERMINATION THE TYPE
-# OF THE RESPECTIVE VARIABLE IS AS SHOWN.
-
-# For the problem GC, the graph data has now been read into the following reserved variables:
-#   - 'v' = the number of vertices of the graph                                  int
-#   - 'edges' = a list of the edges of the graph (just in case you need them)    list
-#   - 'matrix' = the full adjacency matrix of the graph                          list
-#   - 'colours' = the maximum number of colours to be used when colouring        int
-
-# For the problem CL, the graph data has now been read into the following reserved variables:
-#   - 'v' = the number of vertices of the graph                                  int
-#   - 'edges' = a list of the edges of the graph (just in case you need them)    list
-#   - 'matrix' = the full adjacency matrix of the graph                          list
-
-# For the problem GP, the graph data has now been read into the following reserved variables:
-#   - 'v' = the number of vertices of the graph                                  int
-#   - 'edges' = a list of the edges of the graph (just in case you need them)    list
-#   - 'matrix' = the full adjacency matrix of the graph                          list
-#   - 'sets_in_partition' = the number of sets in any partition                  int
-
-# These are reserved variables and need to be treated as such, i.e., use these names for these
-# concepts and don't re-use the names.
-
-# For the problem GC, you will produce a colouring in the form of a list of v integers called
-# 'colouring' where the entries range from 1 to 'colours'. Note! 0 is disallowed as a colour!
-# You will also produce an integer in the variable 'conflicts' which denotes how many edges
-# are such that the two incident vertices are identically coloured (of course, your aim is to
-# MINIMIZE the value of 'conflicts').
-
-# For the problem CL, you will produce a clique in the form of a list of v integers called
-# 'clique' where the entries are either 0 or 1. If 'clique[i]' = 1 then this denotes that the
-# vertex i is in the clique with 'clique[i]' = 0 denoting otherwise.
-# You will also produce an integer in the variable 'clique_size' which denotes how many vertices
-# are in your clique (of course, your aim is to MAXIMIZE the value of 'clique_size').
-
-# For the problem GP, you will produce a partition in the form of a list of v integers called
-# 'partition' where the entries are in {1, 2, ..., 'sets_in_partition'}. Note! 0 is not the
-# name of a partition set! If 'partition[i]' = j then this denotes that the vertex i is in the
-# partition set j.
-# You will also produce an integer in the variable 'conflicts' which denotes how many edges are
-# incident with vertices in different partition sets (of course, your aim is to MINIMIZE the
-# value of 'conflicts').
-
-# In consequence, the following additional variables are reserved:
-#   - 'colouring'                       list of int
-#   - 'conflicts'                       int
-#   - 'clique'                          list of int
-#   - 'clique_size'                     int
-#   - 'partition'                       list of int
-
-# The various algorithms all have additional parameters (see the lectures). These parameters
-# are detailed below and are referred to using the following reserved variables.
-#
-# AB (Artificial Bee Colony)
-#   - 'n' = dimension of the optimization problem       int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of employed bees / food sources      int
-#   - 'M' = number of onlooker bees                     int
-#   - 'lambbda' = limit threshold                       float or int
-#
-# FF (Firefly)
-#   - 'n' = dimension of the optimization problem       int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of fireflies                         int
-#   - 'lambbda' = light absorption coefficient          float or int
-#   - 'alpha' = scaling parameter                       float or int
-#
-# CS (Cuckoo Search)
-#   - 'n' = dimension of optimization problem           int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of nests                             int
-#   - 'p' = fraction of local flights to undertake      float or int
-#   - 'q' = fraction of nests to abandon                float or int
-#   - 'alpha' = scaling factor for Levy flights         float or int
-#   - 'beta' = parameter for Mantegna's algorithm       float or int
-#
-# WO (Whale Optimization)
-#   - 'n' = dimension of optimization problem           int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of whales                            int
-#   - 'b' = spiral constant                             float or int
-#
-# BA (Bat)
-#   - 'n' = dimension of optimization problem           int
-#   - 'num_cyc' = number of cycles to iterate           int
-#   - 'N' = number of bats                              int
-#   - 'sigma' = scaling factor                          float or int
-#   - 'f_min' = best_colouring frequency                       float or int
-#   - 'f_max' = maximum frequency                       float or int
-
-# These are reserved variables and need to be treated as such, i.e., use these names for these
-# parameters and don't re-use the names. Don't forget to ensure that on termination all the above
-# variables have the stated type. In particular, if you use specific numpy types then you'll need
-# to ensure that they are changed prior to termination.
-
-# INITIALIZE THE ACTUAL PARAMETERS YOU USE FOR YOUR ALGORITHM BELOW. ENSURE THAT YOU INITIALIZE
-# *ALL* OF THE PARAMETERS REQUIRED APPROPRIATELY (SEE ABOVE) FOR YOUR CHOSEN ALGORITHM.
-
-# In particular, if you are implementing, say, Artificial Bee Colony and you choose to encode
-# your bees as tuples of length v (where v is the number of vertices in the input graph) then
-# you must initialize n as v (of course, you might have some other encoding where n is different
-# to v and if so then you would initialize n accordingly.)
-
-# Also, you may introduce additional parameters if you wish (below) but they won't get written
-# to the output file.
-
-# In summary, before you input the bulk of your code, ensure that you:
-# - import any (legal) modules you wish to use in the space provided below 
-# - initialize your parameters in the space provided below
-# - ensure that reserved variables have the correct type on termination.
-
-###########################################
-#### NOW YOU CAN ENTER YOUR CODE BELOW ####
-###########################################
-####################################################
 
 # BASIC parameters
 n = v # if each vertex is a dimension
@@ -226,9 +105,7 @@ neighbour_limit = 4 # maximum number of neighbours to check in flight
 timed = True
 max_time = 58 # maximum time in seconds (60s)
 
-###########################################
-#### NOW INCLUDE THE REST OF YOUR CODE ####
-###########################################
+
 # NON-EDITABLE parameters
 # for Mantegna
 sigma_sq = ((math.gamma(1 + beta) * math.sin(math.pi * beta / 2)) / (beta * math.gamma((1 + beta) / 2) * 2 ** ((beta - 1) / 2))) ** (1 / beta)
@@ -662,20 +539,6 @@ conflicts = get_conflicts(partition) # I get conflicts here, just in case fitnes
 
 print('Final conflicts:', conflicts)
 
-#########################################################
-#### YOU SHOULD HAVE NOW FINISHED ENTERING YOUR CODE ####
-####     DO NOT TOUCH ANYTHING BELOW THIS COMMENT    ####
-#########################################################
-
-# At this point in the execution, you should have computed
-# - the list 'colouring' and integer 'conflicts', if you are solving GC;
-# - the list 'clique' and the integer 'clique_size', if you are solving CL; or
-# - the list 'partition' and the integer 'conflicts', if you are solving GP.
-
-# What follows is error-checking code. Your output file will be saved only if
-# no errors are thrown. If there are errors, you'll be told what they are.
-
-# ANY OUTPUT WILL NOT BE SAVED TO FILE UNTIL NO ERRORS ARE THROWN!
 
 now_time = time.time()
 elapsed_time = round(now_time - start_time, 1)

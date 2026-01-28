@@ -10,4 +10,6 @@ authors = [
 keywords = ["natural-computing", "algorithms", "anomaly-detection", "optimization", "graph-partitioning"]
 dependencies = [
     "numpy",
+    "pyyaml>=6.0",
+    "tqdm>=4.66.0",
 ]

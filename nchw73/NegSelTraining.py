@@ -53,44 +53,6 @@ start_time = time.time()
 
 intended_num_detectors = num_detectors
 
-#########################################################################################
-#### YOU SHOULDN'T HAVE TOUCHED *ANYTHING* UP UNTIL NOW APART FROM SUPPLYING VALUES  ####
-#### FOR 'username', 'alg_code', 'threshold' and 'num_detectors' AS REQUESTED ABOVE. ####
-####                        NOW READ THE FOLLOWING CAREFULLY!                        ####
-#########################################################################################
-
-# The training data has now been read with the following reserved variables:
-#   - 'n' = the dimension of the points in the training set                 int
-#   - 'threshold' = the threshold or self-radius, as appropriate            int or float
-#   - 'Self_num_points' = the number of points in the training set
-#   - 'Self' = the list of points in the training set.
-# These are reserved variables and their names should not be changed.
-
-# You also have the reserved variables
-#   - 'user_name', 'alg_code', 'threshold', 'num_detectors', 'intended_num_detectors' and 'start_time'.
-# Remember: if 'alg_code' = 'VD' then 'threshold' denotes your chosen self-radius.
-
-# You need to initialize any other parameters (if you are implementing 'Real-valued Negative Selection'
-# or 'VDetector') yourself in your code below.
-
-# The list of detectors that your code generates needs to be stored in the variable 'detectors'.
-# This is a reserved variable and has just been initialized as empty above. You need to ensure that
-# your computed detector set is stored in 'detectors' as a list of points, i.e., as a list of lists-of-
-# floats-of-length-'n' for NS and RV and 'n' + 1 for VD (remember: a detector for VD is a point plus
-# its individual radius - see Lecture 4).
-
-# FOR ALL OF THE RESERVED VARIABLES BELOW, YOU MUST ENSURE THAT ON TERMINATION THE TYPE
-# OF THE RESPECTIVE VARIABLE IS AS SHOWN.
-
-#  - 'n'                int
-#  - 'threshold'        int or float
-
-# Finally, if you choose to use numpy then import it below (and don't forget to ensure that 
-# variables are of the correct type on termination).
-
-###########################################
-#### NOW YOU CAN ENTER YOUR CODE BELOW ####
-###########################################
 # VDetector algorithm parameters
 timed = True
 time_limit = 13  # should be 15 in total training and testing
