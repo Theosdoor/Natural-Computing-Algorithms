@@ -128,14 +128,19 @@ def location_of_GraphFiles(problem_code, graph_digit):
 
 def location_of_witness_set(graph_digit, timestamp):
     """
-    Generate filename for witness set output.
+    Generate file path for witness set output in outputs/ directory.
     
     Args:
         graph_digit: Graph variant (e.g., 'A', 'B', 'C')
         timestamp: Timestamp string
     
     Returns:
-        str: Witness set filename
+        str: Full path to witness set file in outputs/
     """
-    witness_set = "Witness" + graph_digit + "_" + timestamp + ".txt"
+    # Get the directory containing utils.py (src/)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Get project root (parent of nchw73/)
+    project_root = os.path.dirname(script_dir)
+    # Build path to outputs/
+    witness_set = os.path.join(project_root, "outputs", "Witness" + graph_digit + "_" + timestamp + ".txt")
     return witness_set

@@ -1,8 +1,7 @@
 *.err
-.github/copilot-instructions.md
 
 # Generated output files (algorithm outputs)
-detector_*.txt
+outputs/*
 
 # macOS
 .DS_Store

@@ -1,5 +1,3 @@
-alg_code = "CS"
-
 import time
 import random
 import math
@@ -7,6 +5,7 @@ import sys
 import os
 import datetime
 import numpy as np
+from tqdm import tqdm
 
 def compute_f(point):
     f = -1 * math.sin(point[0])*math.sqrt(point[0]) * math.sin(point[1])*math.sqrt(point[1]) * \
@@ -95,71 +94,76 @@ def cuckoo_search(N, num_cyc, p, q, alpha):
             break
 
     # main loop
-    for t in range(num_cyc):
-        # check if any minima can be added
-        for i in range(1, N):
-            if P[i][1] == best[1]:
-                minima.append(P[i][0])
-            else:
-                break
-
-        if timed and time.time() - start_t > max_time:
-            # print("Time limit reached")
-            return minima
-
-        # levy flights from each nest
-        for i in range(N):
-            # undertake Levy flight from x_i to y_i
-            y = levy_flight(P[i][0], alpha) # y_i
-            y_fitness = fitness(y)
-            if y_fitness < P[i][1]:
-                # replace x_i with y_i if y_i is better
-                P[i] = [y, y_fitness]
-
-                # update best
-                if y_fitness < best[1]:
-                    best = [y, y_fitness]
-
-        # local search with probability p
-        local_flights = random.sample(range(N), int(p * N))
-        for j in local_flights:
-            # undertake local flight
-            y = local_flight(P[j][0])
-            y_fitness = fitness(y)
-            if y_fitness < P[j][1]:
-                P[j] = [y, y_fitness]
+    with tqdm(total=num_cyc, desc="Cuckoo Search", unit="cycle") as pbar:
+        for t in range(num_cyc):
+            # Update progress bar with current best fitness
+            pbar.set_postfix({'best_fitness': f"{best[1]:.6f}", 'time_left': f"{max_time - (time.time() - start_t):.1f}s"})
+            pbar.update(1)
+            
+            # check if any minima can be added
+            for i in range(1, N):
+                if P[i][1] == best[1]:
+                    minima.append(P[i][0])
+                else:
+                    break
 
             if timed and time.time() - start_t > max_time:
-                # print("Time limit reached")
+                pbar.write("Time limit reached")
                 return minima
 
-        # rank nests by fitness
-        P.sort(key=lambda x: x[1])
+            # levy flights from each nest
+            for i in range(N):
+                # undertake Levy flight from x_i to y_i
+                y = levy_flight(P[i][0], alpha) # y_i
+                y_fitness = fitness(y)
+                if y_fitness < P[i][1]:
+                    # replace x_i with y_i if y_i is better
+                    P[i] = [y, y_fitness]
 
-        # update best_fitness and minima if necessary
-        if P[0][1] < best[1]:
-            best = P[0]
-            
-            # restart minima collection
-            minima = [best[0]]
+                    # update best
+                    if y_fitness < best[1]:
+                        best = [y, y_fitness]
 
-        # abandon q fraction of worst nests
-        abandoned_nests = P[-int(q * N):]
-        for k in abandoned_nests:
-            idx = P.index(k)
-            # generate new random nest to replace
-            y = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
-            y = levy_flight(y, alpha) # levy flight from new nest
-            P[idx] = [y, fitness(y)]
+            # local search with probability p
+            local_flights = random.sample(range(N), int(p * N))
+            for j in local_flights:
+                # undertake local flight
+                y = local_flight(P[j][0])
+                y_fitness = fitness(y)
+                if y_fitness < P[j][1]:
+                    P[j] = [y, y_fitness]
 
-            # update best_fitness if necessary
-            if P[idx][1] < best[1]:
-                best = P[idx]
-                minima = [P[idx][0]] # reset minima
-            
-            if timed and time.time() - start_t > max_time:
-                # print("Time limit reached")
-                return minima
+                if timed and time.time() - start_t > max_time:
+                    pbar.write("Time limit reached")
+                    return minima
+
+            # rank nests by fitness
+            P.sort(key=lambda x: x[1])
+
+            # update best_fitness and minima if necessary
+            if P[0][1] < best[1]:
+                best = P[0]
+                
+                # restart minima collection
+                minima = [best[0]]
+
+            # abandon q fraction of worst nests
+            abandoned_nests = P[-int(q * N):]
+            for k in abandoned_nests:
+                idx = P.index(k)
+                # generate new random nest to replace
+                y = [random.uniform(min_range[j], max_range[j]) for j in range(n)]
+                y = levy_flight(y, alpha) # levy flight from new nest
+                P[idx] = [y, fitness(y)]
+
+                # update best_fitness if necessary
+                if P[idx][1] < best[1]:
+                    best = P[idx]
+                    minima = [P[idx][0]] # reset minima
+                
+                if timed and time.time() - start_t > max_time:
+                    pbar.write("Time limit reached")
+                    return minima
         
     return minima
 

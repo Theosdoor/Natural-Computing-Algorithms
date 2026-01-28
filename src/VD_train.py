@@ -1,5 +1,3 @@
-alg_code = "VD"
-
 threshold = 0.027
 
 num_detectors = 600
@@ -9,9 +7,10 @@ import os.path
 import random
 import math
 import sys
+from tqdm import tqdm
 from utils import get_a_timestamp_for_an_output_file, read_points_only, euclidean_distance
  
-# Get the project root directory (parent of nchw73/)
+# Get the project root directory (parent of src/)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 location_of_self = os.path.join(project_root, "data", "self_training.txt")
@@ -69,42 +68,48 @@ def v_detector(): # Self is constant in this case, so I've omitted it as paramet
     start_t = time.time()
 
     # while there are less than n valid detectors
-    while len(D) < intended_num_detectors: 
-        t0 = 0
-        phase_one_flag = False
-        if timed and time.time() - start_t > time_limit:
-            return D
-        
-        while not phase_one_flag:
-            # generate a random individual x from [0, 1]^n, set r = inf, and set phase_one_flag = "Successful"
-            x = [random.random() for _ in range(n)]
-            r = float("inf")
-            phase_one_flag = True
+    with tqdm(total=intended_num_detectors, desc="Generating detectors", unit="detector") as pbar:
+        while len(D) < intended_num_detectors: 
+            t0 = 0
+            phase_one_flag = False
+            if timed and time.time() - start_t > time_limit:
+                pbar.write(f"Time limit reached. Generated {len(D)}/{intended_num_detectors} detectors")
+                return D
+            
+            while not phase_one_flag:
+                # generate a random individual x from [0, 1]^n, set r = inf, and set phase_one_flag = "Successful"
+                x = [random.random() for _ in range(n)]
+                r = float("inf")
+                phase_one_flag = True
 
-            for d in D:
-                # if we have collision
-                if euclidean_distance(x, d[:-1]) <= d[-1]:
-                    t0 += 1
-                    if t0 >= (1 / (1-c0)): # m = 1 / (1-c0)
-                        # output D and terminate
-                        return D
-                    phase_one_flag = False
-                    break
+                for d in D:
+                    # if we have collision
+                    if euclidean_distance(x, d[:-1]) <= d[-1]:
+                        t0 += 1
+                        if t0 >= (1 / (1-c0)): # m = 1 / (1-c0)
+                            # output D and terminate
+                            pbar.write(f"Coverage threshold reached. Generated {len(D)}/{intended_num_detectors} detectors")
+                            return D
+                        phase_one_flag = False
+                        break
 
-        for s in Self:  # for every point in training set
-            dst = euclidean_distance(x, s)
-            if dst - threshold < r: 
-                r = dst - threshold
-        
-        if r > threshold:
-            x.append(r + alpha*threshold)
-            D.append(x)
-        else:
-            t1 += 1
+            for s in Self:  # for every point in training set
+                dst = euclidean_distance(x, s)
+                if dst - threshold < r: 
+                    r = dst - threshold
+            
+            if r > threshold:
+                x.append(r + alpha*threshold)
+                D.append(x)
+                pbar.update(1)
+                pbar.set_postfix({'time_left': f"{time_limit - (time.time() - start_t):.1f}s"})
+            else:
+                t1 += 1
 
-        if t1 >= (1 / (1-c1)):
-            # output D and terminate
-            return D
+            if t1 >= (1 / (1-c1)):
+                # output D and terminate
+                pbar.write(f"Training coverage threshold reached. Generated {len(D)}/{intended_num_detectors} detectors")
+                return D
 
     return D
 
@@ -119,18 +124,13 @@ detector_set_location = os.path.join(project_root, "outputs", "detector_" + time
 f = open(detector_set_location, "w")
 
 f.write("detector set\n")
-f.write("algorithm code = {0}\n".format(alg_code))
+f.write("algorithm code = VD\n")
 f.write("dimension = {0}\n".format(n))
-if alg_code != "VD":
-    f.write("threshold = {0}\n".format(threshold))
-else:
-    f.write("self-radius = {0}\n".format(threshold))
+f.write("self-radius = {0}\n".format(threshold))
 num_detectors = len(detectors)
 f.write("number of detectors = {0} (from an intended number of {1})\n".format(num_detectors, intended_num_detectors))
 f.write("training time = {0}\n".format(training_time))
-detector_length = n
-if alg_code == "VD":
-    detector_length = n + 1
+detector_length = n + 1
 for i in range(0, num_detectors):
     f.write("[")
     for j in range(0, detector_length):

@@ -24,25 +24,27 @@ All algorithms are implemented from scratch using only Python's standard library
 ## Repository Structure
 
 ```
-nchw73/                          # Main implementation folder
-├── NegSelTraining.py           # VDetector anomaly detection training
-├── NegSelTesting.py            # Detector set validation
-├── TrainTune.py                # Parameter tuning experiments
-├── NatAlgReal.py               # Cuckoo Search continuous optimization
-├── NatAlgDiscrete.py           # Unified Cuckoo Search graph partitioning
-├── NatAlgDiscreteA/B/C.py      # [LEGACY] Graph partitioning variants
-├── config_A/B/C.yaml           # Configuration files for graph problems
-├── NegSelReport.md             # Methodology and tuning details for NegSel
-├── NatAlgReport.md             # Methodology and tuning details for Cuckoo Search
+src/                             # Main implementation folder
+├── VD_train.py                 # VDetector anomaly detection training
+├── VD_test.py                  # Detector set validation
+├── VD_grid_search.py           # Parameter tuning experiments
+├── real_cuckoo.py              # Cuckoo Search continuous optimization
+├── discrete_cuckoo.py          # Cuckoo Search graph partitioning
 └── utils.py                    # Shared utility functions
+
+configs/                         # Configuration files
+├── config_A.yaml               # Graph A (160 vertices)
+├── config_B.yaml               # Graph B (400 vertices)
+└── config_C.yaml               # Graph C (800 vertices)
 
 data/                            # Training and test datasets
 ├── self_training.txt           # Training data (Self)
 ├── self_testing.txt            # Test data (Self)
 └── non_self_testing.txt        # Test data (non-Self)
 
-outputs/                         # Generated detector sets and results
-└── detector_<timestamp>.txt    # VDetector output files
+outputs/                         # Generated detector sets and witness files
+├── detector_<timestamp>.txt    # VDetector output files
+└── Witness{A,B,C}_<timestamp>.txt  # Cuckoo Search results
 
 GraphFiles/                      # Input data for graph problems
 ├── CLGraph{A,B,C}.txt          # Coloring problem instances
@@ -53,6 +55,10 @@ results/                         # Optimal solutions for discrete problems
 ├── WitnessA.txt                # Best partition for GPGraphA (159 conflicts)
 ├── WitnessB.txt                # Best partition for GPGraphB (268 conflicts)
 └── WitnessC.txt                # Best partition for GPGraphC (212 conflicts)
+
+Scripts:
+├── run_vdetector.sh            # Train and test V-Detector
+└── run_cuckoo_all.sh           # Run Cuckoo Search for all configs
 ```
 
 ## How to Run
@@ -61,17 +67,22 @@ results/                         # Optimal solutions for discrete problems
 
 **Training - Generate Detector Set:**
 ```bash
-uv run python nchw73/NegSelTraining.py
+uv run python src/VD_train.py
+# Or use the convenience script:
+./run_vdetector.sh
 # Output: outputs/detector_<timestamp>.txt
 ```
 
 **Testing - Validate Detector Set:**
 ```bash
-# Test a specific detector set
-uv run python nchw73/NegSelTesting.py detector_Jan28200143.txt
+# Test most recent detector (default)
+uv run python src/VD_test.py
+
+# Or test a specific detector set
+uv run python src/VD_test.py detector_Jan28200143.txt
 
 # Or provide full path
-uv run python nchw73/NegSelTesting.py outputs/detector_Jan28200143.txt
+uv run python src/VD_test.py outputs/detector_Jan28200143.txt
 ```
 
 **Output metrics:**
@@ -80,29 +91,27 @@ uv run python nchw73/NegSelTesting.py outputs/detector_Jan28200143.txt
 
 ### Continuous Optimization
 ```bash
-uv run python nchw73/NatAlgReal.py
+uv run python src/real_cuckoo.py
 # Output: Best minimum value and location printed to stdout
 ```
 
 ### Discrete Optimization
 
-**Modern Approach (Unified Script with YAML Configs):**
+**Run All Configs:**
 ```bash
-# Run with configuration files for each problem
-uv run python nchw73/NatAlgDiscrete.py nchw73/config_A.yaml  # Graph A (160 vertices)
-uv run python nchw73/NatAlgDiscrete.py nchw73/config_B.yaml  # Graph B (400 vertices)
-uv run python nchw73/NatAlgDiscrete.py nchw73/config_C.yaml  # Graph C (800 vertices)
-# Output: results/Witness<digit>_<timestamp>.txt
-# Features: tqdm progress bars, parameterized configs, cleaner code
+./run_cuckoo_all.sh
+# Runs discrete_cuckoo.py for all configs in configs/
+# Output: outputs/Witness{A,B,C}_<timestamp>.txt
 ```
 
-**Legacy Approach (Original Submission):**
+**Run Individual Configs:**
 ```bash
-# Test on different graphs by running each variant
-uv run python nchw73/NatAlgDiscreteA.py  # Graph A (160 vertices)
-uv run python nchw73/NatAlgDiscreteB.py  # Graph B (400 vertices)
-uv run python nchw73/NatAlgDiscreteC.py  # Graph C (800 vertices)
-# Output: results/Witness<digit>_<timestamp>.txt
+# Run with configuration files for each problem
+uv run python src/discrete_cuckoo.py configs/config_A.yaml  # Graph A (160 vertices)
+uv run python src/discrete_cuckoo.py configs/config_B.yaml  # Graph B (400 vertices)
+uv run python src/discrete_cuckoo.py configs/config_C.yaml  # Graph C (800 vertices)
+# Output: outputs/Witness<digit>_<timestamp>.txt
+# Features: tqdm progress bars, parameterized configs, cleaner code
 ```
 
 ## Algorithms & Results
@@ -155,14 +164,14 @@ Performance on 3 problem instances:
 
 ## Technical Details
 
-For methodology, see the detailed reports:
-- [nchw73/NegSelReport.md](nchw73/NegSelReport.md) - NegSel parameter tuning and alpha scaling enhancement
-- [nchw73/NatAlgReport.md](nchw73/NatAlgReport.md) - Cuckoo Search discretization strategies and enhancements
+For methodology, see the detailed reports in the project root:
+- [NegSelReport.md](NegSelReport.md) - NegSel parameter tuning and alpha scaling enhancement
+- [NatAlgReport.md](NatAlgReport.md) - Cuckoo Search discretization strategies and enhancements
 
 ## Implementation Notes
 
 - **Language:** Python 3.7+
-- **Dependencies:** numpy (managed via `uv`)
+- **Dependencies:** numpy, tqdm, pyyaml (managed via `uv`)
 - **Package Management:** Use `uv` commands for dependency management
   - `uv sync` - synchronize environment with lockfile
   - `uv run <script>` - execute scripts in managed environment

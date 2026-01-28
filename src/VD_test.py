@@ -2,9 +2,10 @@ import sys
 import os.path
 import math
 import time
+from tqdm import tqdm
 from utils import read_points_only, Euclidean_distance
 
-# Get the project root directory (parent of nchw73/)
+# Get the project root directory (parent of src/)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 
@@ -42,7 +43,20 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         detector_set = sys.argv[1]
     else:
-        detector_set = "detector.txt"
+        # Default to most recent detector file in outputs/
+        outputs_dir = os.path.join(project_root, "outputs")
+        detector_files = [f for f in os.listdir(outputs_dir) if f.startswith("detector_") and f.endswith(".txt")]
+        
+        if not detector_files:
+            print("\n*** error: No detector files found in outputs/")
+            print("Please run VD_train.py first or specify a detector file as argument")
+            print("Usage: python VD_test.py <detector_file.txt>")
+            sys.exit()
+        
+        # Sort by modification time, most recent first
+        detector_files.sort(key=lambda f: os.path.getmtime(os.path.join(outputs_dir, f)), reverse=True)
+        detector_set = detector_files[0]
+        print(f"Using most recent detector file: {detector_set}")
     
     detector_set_location = get_location_of_detector_set(detector_set)
     self_testing = "self_testing.txt"
@@ -176,13 +190,17 @@ if __name__ == "__main__":
     TN = 0
     TP = 0
     FN = 0
-    for i in range(0, self_num_points):
+    
+    print("Testing Self data...")
+    for i in tqdm(range(0, self_num_points), desc="Testing Self", unit="point"):
         detection = testing(detector_point_length, alg_code, detectors, actual_num_detectors, threshold, Self[i])
         if detection == True:
             FP = FP + 1
         else:
             TN = TN + 1
-    for i in range(0, non_self_num_points):
+    
+    print("Testing non-Self data...")
+    for i in tqdm(range(0, non_self_num_points), desc="Testing non-Self", unit="point"):
         detection = testing(detector_point_length, alg_code, detectors, actual_num_detectors, threshold, non_Self[i])
         if detection == True:
             TP = TP + 1

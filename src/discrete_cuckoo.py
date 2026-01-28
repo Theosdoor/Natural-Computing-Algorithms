@@ -4,7 +4,6 @@ Usage: python discrete_cuckoo.py <config_file.yaml>
 Example: python discrete_cuckoo.py config_A.yaml
 """
 
-alg_code = "CS"
 problem_code = "GP"
 
 import time
@@ -503,31 +502,26 @@ def main():
                 print("*** error: you claim {0} but there are actually {1} conflicts\n".format(conflicts, true_conflicts))
                 error_flag = True
 
-    if not alg_code in ["AB", "FF", "CS", "WO", "BA"]:
-        print("*** error: 'alg_code' = {0} is invalid".format(alg_code))
-        error_flag = True
-
     if type(n) != int:
         print("*** error: 'n' is not an integer: it is {0} and it has type {1})".format(n, type(n)))
     if type(num_cyc) != int:
         print("*** error: 'num_cyc' is not an integer: it is {0} and it has type {1})".format(num_cyc, type(num_cyc)))
 
-    if alg_code == "CS":
-        if type(N) != int:
-            print("*** error: 'N' is not an integer: it is {0} and it has type {1})".format(N, type(N)))
-            error_flag = True
-        if type(p) != int and type(p) != float:
-            print("*** error: 'p' is not an integer or a float: it is {0} and it has type {1})".format(p, type(p)))
-            error_flag = True
-        if type(q) != int and type(q) != float:
-            print("*** error: 'q' is not an integer or a float: it is {0} and it has type {1})".format(q, type(q)))
-            error_flag = True
-        if type(alpha) != int and type(alpha) != float:
-            print("*** error: 'alpha' is not an integer or a float: it is {0} and it has type {1})".format(alpha, type(alpha)))
-            error_flag = True
-        if type(beta) != int and type(beta) != float:
-            print("*** error: 'beta' is not an integer or a float: it is {0} and it has type {1})".format(beta, type(beta)))
-            error_flag = True
+    if type(N) != int:
+        print("*** error: 'N' is not an integer: it is {0} and it has type {1})".format(N, type(N)))
+        error_flag = True
+    if type(p) != int and type(p) != float:
+        print("*** error: 'p' is not an integer or a float: it is {0} and it has type {1})".format(p, type(p)))
+        error_flag = True
+    if type(q) != int and type(q) != float:
+        print("*** error: 'q' is not an integer or a float: it is {0} and it has type {1})".format(q, type(q)))
+        error_flag = True
+    if type(alpha) != int and type(alpha) != float:
+        print("*** error: 'alpha' is not an integer or a float: it is {0} and it has type {1})".format(alpha, type(alpha)))
+        error_flag = True
+    if type(beta) != int and type(beta) != float:
+        print("*** error: 'beta' is not an integer or a float: it is {0} and it has type {1})".format(beta, type(beta)))
+        error_flag = True
 
     if error_flag == False:
         timestamp = get_a_timestamp_for_an_output_file()
@@ -538,7 +532,7 @@ def main():
         f.write("problem code = {0}\n".format(problem_code))
         f.write("graph = {0}Graph{1}.txt with (|V|,|E|) = ({2},{3})\n".format(problem_code, graph_digit, v, len(edges)))
         f.write("number of partition sets = {0}\n".format(sets_in_partition))
-        f.write("algorithm code = {0}\n".format(alg_code))
+        f.write("algorithm code = CS\n")
         f.write("associated parameters [n, num_cyc, N, p, q, alpha, beta] = ")
         f.write("[{0}, {1}, {2}, {3}, {4}, {5}, {6}]\n".format(n, num_cyc, N, p, q, alpha, beta))
         f.write("conflicts = {0}\n".format(conflicts))

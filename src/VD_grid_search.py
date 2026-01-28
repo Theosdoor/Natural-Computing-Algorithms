@@ -4,13 +4,13 @@ import random
 import math
 import sys
 import numpy
+from tqdm import tqdm
 from utils import get_a_timestamp_for_an_output_file, read_points_only, Euclidean_distance, euclidean_distance
 
-alg_code = "VD"
 threshold = 0.027
 num_detectors = 1000
 
-# Get the project root directory (parent of nchw73/)
+# Get the project root directory (parent of src/)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 location_of_self = os.path.join(project_root, "data", "self_training.txt")
@@ -155,13 +155,13 @@ def test(detectors):
     TP = 0
     FN = 0
     for i in range(0, self_num_points):
-        detection = testing(detector_point_length, alg_code, detectors, len(detectors), threshold, Self_test[i])
+        detection = testing(detector_point_length, "VD", detectors, len(detectors), threshold, Self_test[i])
         if detection == True:
             FP = FP + 1
         else:
             TN = TN + 1
     for i in range(0, non_self_num_points):
-        detection = testing(detector_point_length, alg_code, detectors, len(detectors), threshold, non_Self[i])
+        detection = testing(detector_point_length, "VD", detectors, len(detectors), threshold, non_Self[i])
         if detection == True:
             TP = TP + 1
         else:
@@ -270,53 +270,49 @@ boundaries = numpy.linspace(0.35, 0.44, 10) # good between 0.35-0.5
 
 max_it = 3
 
-# N = 1000
-# c0 = 0.9999
-# c1 = 0.9999
-# threshold = 0.0287
+# Calculate total iterations for progress bar
+total_iterations = len(Ns) * len(c0s) * len(c1s) * len(thresholds) * len(boundaries)
 
-for N in Ns:
-    if goodEnough:
-        break
-    for c0 in c0s:
+with tqdm(total=total_iterations, desc="Grid Search", unit="config") as pbar:
+    for N in Ns:
         if goodEnough:
             break
-        # c0 = round(c0, 4)
-        for c1 in c1s:
+        for c0 in c0s:
             if goodEnough:
                 break
-            # c1 = round(c1, 4)
-            for threshold in thresholds:
-                threshold = round(threshold, 4)
-                for alpha in boundaries:
-                    alpha = round(alpha, 4)
-                    print("***********")
-                    print("Testing: c0: {0}, c1: {1}, threshold: {2}, N: {3}, alpha: {4}".format(c0, c1, threshold, N, alpha))
-                    if goodEnough:
-                        break
-                    # it = 0
-                    # while it < max_it: # repeat each parameter combo x times to account for randomness
-                    avg_det_rate = 0
-                    avg_far = 0
-                    avd_len = 0
-                    for it in range(max_it):
-                        # print('-----------------')
-                        # print("Iteration: {0}".format(it))
-                        detectors = v_detector(c0, c1, threshold, N, alpha)
-                        det_rate, far, testing_time = test(detectors)
-                        avg_det_rate += det_rate
-                        avg_far += far
-                        avd_len += len(detectors)
-                    
-                    det_rate = round(avg_det_rate / max_it, 2)
-                    far = round(avg_far / max_it, 2)
-                    avg_len = avd_len // max_it
-                    print("det_rate: {0}, far: {1}".format(det_rate, far))
-                    print("Num detectors: {0}".format(avg_len))
+            for c1 in c1s:
+                if goodEnough:
+                    break
+                for threshold in thresholds:
+                    threshold = round(threshold, 4)
+                    for alpha in boundaries:
+                        alpha = round(alpha, 4)
+                        pbar.write("***********")
+                        pbar.write("Testing: c0: {0}, c1: {1}, threshold: {2}, N: {3}, alpha: {4}".format(c0, c1, threshold, N, alpha))
+                        if goodEnough:
+                            break
+                        avg_det_rate = 0
+                        avg_far = 0
+                        avd_len = 0
+                        for it in range(max_it):
+                            detectors = v_detector(c0, c1, threshold, N, alpha)
+                            det_rate, far, testing_time = test(detectors)
+                            avg_det_rate += det_rate
+                            avg_far += far
+                            avd_len += len(detectors)
+                        
+                        det_rate = round(avg_det_rate / max_it, 2)
+                        far = round(avg_far / max_it, 2)
+                        avg_len = avd_len // max_it
+                        pbar.write("det_rate: {0}, far: {1}".format(det_rate, far))
+                        pbar.write("Num detectors: {0}".format(avg_len))
+                        pbar.set_postfix({'det_rate': det_rate, 'far': far, 'n_detectors': avg_len})
+                        pbar.update(1)
 
-                    if det_rate > sat_det and far < sat_far:
-                        goodEnough = True
-                        break
+                        if det_rate > sat_det and far < sat_far:
+                            goodEnough = True
+                            pbar.write("Good enough solution found!")
+                            break
 
 detectors = best_detectors
 
@@ -331,19 +327,14 @@ detector_set_location = os.path.join(project_root, "outputs", "detector_TT_" + t
 f = open(detector_set_location, "w")
 
 f.write("detector set\n")
-f.write("algorithm code = {0}\n".format(alg_code))
+f.write("algorithm code = VD\n")
 f.write("dimension = {0}\n".format(n))
-if alg_code != "VD":
-    f.write("threshold = {0}\n".format(threshold))
-else:
-    f.write("self-radius = {0}\n".format(threshold))
+f.write("self-radius = {0}\n".format(threshold))
 num_detectors = len(detectors)
 f.write("number of detectors = {0} (from an intended number of {1})\n".format(num_detectors, intended_num_detectors))
 f.write("training time = {0}\n".format(training_time))
 f.write(added_note)
-detector_length = n
-if alg_code == "VD":
-    detector_length = n + 1
+detector_length = n + 1
 for i in range(0, num_detectors):
     f.write("[")
     for j in range(0, detector_length):
@@ -362,7 +353,7 @@ print("detector set saved as {0}\n".format(detector_set_location))
 
 
 # TESTING
-print("This detector set was built using algorithm '{0}' on data of dimension {1}.".format(alg_code, self_point_length))
+print("This detector set was built using algorithm 'VD' on data of dimension {0}.".format(self_point_length))
 print("The self-radius is {0} and the time to build was {1}.".format(threshold, training_time))
 print("From {0} test-individuals from Self and {1} test-individuals from non-Self:".format(self_num_points, non_self_num_points))
 print("   - detection rate   TP/(TP+FN) = {0}%".format(det_rate))
