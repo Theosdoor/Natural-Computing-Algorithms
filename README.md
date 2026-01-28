@@ -4,12 +4,12 @@ Submitted as part of 3rd year **Natural Computing Algorithms** module (MSci Natu
 
 **Final Grade: 73% (1st Class)**
 
-| Algorithm | Mark | Out of |
-|-----------|------|--------|
-| Negative Selection (NegSel) | 24.63 | 34 |
-| Continuous Optimization (NatAlgReal) | 10.49 | 18 |
-| Discrete Optimization (NatAlgDiscrete) | 37.27 | 48 |
-| **TOTAL** | **72.39** | **100** |
+| Algorithm | My Mark | Class Average |
+|-----------|---------|---------------|
+| Negative Selection (NegSel) | 72.4% | 66% |
+| Continuous Optimization (NatAlgReal) | 58.2% | 69% |
+| Discrete Optimization (NatAlgDiscrete) | 77.6% | 66% |
+| **TOTAL** | **73%** | **67%** |
 
 ## Project Overview
 
@@ -162,13 +162,95 @@ Performance on 3 problem instances:
 
 **Key Insight:** Exploration vs. exploitation trade-off managed through `p` (local search fraction) and `q` (abandon fraction). Larger graphs benefited from higher p and q values to explore more effectively despite increased runtime.
 
+## Detailed Methodology
+
+### Negative Selection (V-Detector)
+
+#### Parameter Tuning Methodology
+
+For parameter tuning, I used a grid search approach to explore various parameter combinations. This involved exploring wide intervals for each parameter at first, and then systematically narrowing them to investigate promising results. Within every interval, I sampled 10 evenly spaced values. Each parameter combination was repeated 3 times, and the results were averaged to account for randomness.
+
+My first grid search checked 10⁴ combinations of 10 equally spaced values for each parameter within the following intervals:
+- **c0 and c1** – [0.75, 0.95]. Note that the possible values for c0 and c1 were the same, but every c0 was tried against every c1 so we get 10² combinations from this interval.
+- **Threshold** – [0.01, 0.1]
+- **N** – [100, 1000]
+
+**Initial Findings:** This was surprisingly quick, because most (c0, c1) pairs where one was below 0.9 generated very low detector counts. If the threshold was small enough (less than 0.04) then there was always at least 1 detector produced in my tests for any (c0, c1) pair.
+
+The general trend was that (c0, c1) pairs closer to (1, 1) produced more detectors and gave better results. Somewhat surprising however, was that **c1 was much more significant than c0** for the output quality:
+- A typical **(high c0, low c1)** pair like (0.975, 0.85) produced 8 detectors (with low DR and FAR)
+- A typical **(low c0, high c1)** pair like (0.825, 0.975) gave 36 detectors with DR = 22.32%
+
+Despite this observation, (high c0, high c1) pairs continued to give the most consistently high-quality results. Narrowing the interval for possible (c0, c1) pairs and repeating the grid search led me to finally choose **c0=c1=0.9999**.
+
+**Threshold Optimization:** As for thresholds on [0.005, 0.05], DR was > 70% on [0.005, 0.035) and FAR was < 10% on [0.025, 0.05]. This suggested [0.025, 0.035) as the optimal range. By repeatedly narrowing this interval, I settled on **0.027 as my threshold**, which gave DR = 78.38% and FAR = 6.07%.
+
+**Population Size (N):** Given my threshold = 0.027, I set **N = 600** since it took longer than 13 seconds to generate more than this, at which point the runtime is too long.
+
+#### Enhancement: Alpha Scaling
+
+When one detector is placed next to another, they touch at most once, which is only when the distance between them = threshold. In this case, there is a gap of potentially non-self between the curves of the detectors, where no new detector can fit. I decided to slightly extend the radius of detectors at the moment they are added to the detector set to cover this gap.
+
+I added an **alpha scaling factor**, which is multiplied by the threshold and added to the detector radius. For c0=c1=0.9999, threshold=0.27, N=600:
+- **Alpha = 0** (vanilla): Averaged DR = 73.77 and FAR = 4.4 across 10 detector sets
+- **Alpha = 0.36**: Averaged DR = 81.05 and FAR = 8.95, as well as ~70 fewer detectors
+
+---
+
+### Continuous Optimization (Cuckoo Search)
+
+The best minimum I achieved was at `[7.922588886680929, 7.942046903938513, 7.930403753699924, 7.926600109343327]` with a value of **-62.15358247837975**. This took 9.9 seconds with parameters: `num_cyc = 24000, N = 50, p = 0.6, q = 0.25, alpha = 1.6, beta = 1.5`.
+
+---
+
+### Discrete Optimization (Graph Partitioning)
+
+#### Discretization Strategy
+
+To discretize the algorithm, I created discrete Levy and local flight functions. To accurately represent the philosophy behind cuckoo search, I ensured that:
+- **Local flights** from a nest only minimally disrupted its associated partition
+- **Levy flights** from a nest would generally be small changes with the chance of a large disruption
+
+I defined:
+- **Local flight:** Randomly swapping two vertices in different partitions
+- **Levy flight:** Performing local swaps M times, where M is the integer part of `alpha * Levy_step`
+
+**Initial Results:** Without any enhancements, within a minute:
+- **Graph A:** Halved conflicts (298 → 173)
+- **Graph B:** Halved conflicts (626 → 382)
+- **Graph C:** Reduced by about a third (779 → 509)
+
+This suggests the discretization works, since the convergence was fast as expected in cuckoo search. However, this speed is also partly due to my method of calculating conflicts which avoided checking the entire adjacency matrix and used a custom Vertex class to store neighbors instead.
+
+#### Parameter Tuning
+
+**Population Size (N):** Number of nests had a significant impact on runtime and convergence time. This highlights the **exploration vs. exploitation trade-off** in cuckoo search, where larger N encourages greater exploration and smaller N encourages exploitation. However, larger N significantly affected runtime for larger graphs.
+
+**Local Search and Abandon Fractions (p, q):** A low p and high q resulted in very fast convergence, whereas high p and low q caused the opposite but allowed greater exploration. I found that for larger graphs, a larger p and q was more useful:
+- **Graph A:** Generally converged to ~170 for any p in [0.4, 0.9] and q in [0.1, 0.9]
+- **Graph C:** Searches with larger p and q converged substantially quicker after 30+ seconds
+
+#### Enhancements
+
+**1. Alpha Decay and Levy Flights from New Nests** ([Source](https://doi.org/10.1016/j.chaos.2011.06.004))
+
+When generating a new nest to replace an abandoned one, I do a Levy flight from it after generation. I introduce a parameter `alphat`, which decreases as t increases. This encouraged exploration when generating new nests, but the decaying alpha meant that these Levy flights would eventually be ineffective, improving convergence speed.
+
+**2. Ranked Nest Generation**
+
+Inspired by ranked ACO, I select w (user-chosen parameter) of the best nests found in a given cycle. When replacing abandoned nests, the newly generated nest is a Levy flight from one of these best nests, selected with probabilities proportional to their fitness. I used `p_ranked = 0.8` and `w = 6` for good exploitation while allowing 20% of newly generated nests to still be completely random to help escape local optima. This vastly improved convergence time. In graph C, solutions fewer than 300 conflicts were consistently found within 1 minute.
+
+**3. Fiduccia-Mattheyses (FM) Inspired Levy Flight**
+
+Inspired by the FM heuristic, this Levy flight swaps 2 random vertices, then checks their neighbors and swaps them if it reduces conflicts. A `neighbour_limit` parameter limits the number of neighbors checked. Unfortunately, this didn't have a significant impact compared to the vanilla operator.
+
+**4. Greedy Nest Generation (Unsuccessful)**
+
+I attempted to seed the initial population with 'greedy' partitions. Each vertex is added to the smallest partition that doesn't conflict. Unfortunately, this made the initial population worse (initial best of 880 vs 780 for random). They gradually converged to the same number after several cycles, so this enhancement was not useful.
+
+---
+
 ## Technical Details
-
-For methodology, see the detailed reports in the project root:
-- [NegSelReport.md](NegSelReport.md) - NegSel parameter tuning and alpha scaling enhancement
-- [NatAlgReport.md](NatAlgReport.md) - Cuckoo Search discretization strategies and enhancements
-
-## Implementation Notes
 
 - **Language:** Python 3.7+
 - **Dependencies:** numpy, tqdm, pyyaml (managed via `uv`)
