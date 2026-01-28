@@ -1,0 +1,11 @@
+[project]
+name = "natural-computing-algorithms"
+version = "1.0.0"
+description = "Natural Computing Algorithms coursework - implementations of Negative Selection (VDetector), Cuckoo Search (continuous), and Cuckoo Search (discrete/graph partitioning)"
+readme = "README.md"
+requires-python = ">=3.7"
+authors = [
+    { name = "Theo Farrell", email = "nchw73@durham.ac.uk" }
+]
+keywords = ["natural-computing", "algorithms", "anomaly-detection", "optimization", "graph-partitioning"]
+dependencies = []
