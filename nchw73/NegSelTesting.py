@@ -20,17 +20,21 @@ import math
 import time
 from utils import read_points_only, Euclidean_distance
 
+# Get the project root directory (parent of nchw73/)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+
 def get_location_of_self_testing(self_testing):
-    self_location = self_testing
-    return self_location
+    return os.path.join(project_root, "data", self_testing)
 
 def get_location_of_non_self_testing(non_self_testing):
-    non_self_location = non_self_testing
-    return non_self_location
+    return os.path.join(project_root, "data", non_self_testing)
 
 def get_location_of_detector_set(detector_set):
-    detector_set_location = detector_set
-    return detector_set_location
+    # If full path provided, use it; otherwise assume it's in outputs/
+    if os.path.isabs(detector_set) or os.path.exists(detector_set):
+        return detector_set
+    return os.path.join(project_root, "outputs", detector_set)
 
 def testing(n, alg, detector_set, num_detectors, threshold, individual):
     detection = False
@@ -50,7 +54,12 @@ def testing(n, alg, detector_set, num_detectors, threshold, individual):
 
 if __name__ == "__main__":
 
-    detector_set = "detector.txt"
+    # Accept detector set filename as command line argument
+    if len(sys.argv) > 1:
+        detector_set = sys.argv[1]
+    else:
+        detector_set = "detector.txt"
+    
     detector_set_location = get_location_of_detector_set(detector_set)
     self_testing = "self_testing.txt"
     self_location = get_location_of_self_testing(self_testing)

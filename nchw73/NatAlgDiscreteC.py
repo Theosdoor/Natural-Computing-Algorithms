@@ -1,42 +1,8 @@
-#################################################################################
-#### PLEASE READ ALL COMMENTS BELOW AND MAKE SURE YOU FOLLOW MY INSTRUCTIONS ####
-#################################################################################
-
-# This is the skeleton program 'NatAlgDiscrete.py' around which you should build your implementation.
-
-# On input 'GCGraphA.txt', say, the output is a witness set that is in the file 'WitnessA_<timestamp>.txt' where
-# '<timestamp>' is a timestamp so that you do not overwrite previously produced witnesses. You can always
-# rename these files. However, apart from renaming them you should not tamper with them in any other way.
-
-# It is assumed that all graph files are in a folder called 'GraphFiles' that lies in the same folder as
-# this program.
-
-# As regards the values to be entered below:
-# - make sure that all values appear within double quotes
-# - make sure that no comments are inserted after you have entered the values.
-
-###############################################################
-#### ENTER THE CODE FOR THE ALGORITHM YOU ARE IMPLEMENTING ####
-###############################################################
-
 alg_code = "CS"
-
-#################################################################
-#### ENTER THE CODE FOR THE GRAPH PROBLEM YOU ARE OPTIMIZING ####
-#################################################################
 
 problem_code = "GP"
 
-#############################################################
-#### ENTER THE DIGIT OF THE INPUT GRAPH FILE (A, B OR C) ####
-#############################################################
-
 graph_digit = "C"
-
-################################################################
-#### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
-####      THIS INCLUDES IMPORTING ADDITIONAL MODULES!       ####
-################################################################
 
 import time
 import os

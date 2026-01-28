@@ -25,50 +25,70 @@ All algorithms are implemented from scratch using only Python's standard library
 
 ```
 nchw73/                          # Main implementation folder
-├── NegSelTraining.py           # VDetector anomaly detection
+├── NegSelTraining.py           # VDetector anomaly detection training
+├── NegSelTesting.py            # Detector set validation
+├── TrainTune.py                # Parameter tuning experiments
 ├── NatAlgReal.py               # Cuckoo Search continuous optimization
 ├── NatAlgDiscreteA/B/C.py      # Cuckoo Search graph partitioning (3 variants)
 ├── NegSelReport.md             # Methodology and tuning details for NegSel
-└── NatAlgReport.md             # Methodology and tuning details for Cuckoo Search
+├── NatAlgReport.md             # Methodology and tuning details for Cuckoo Search
+└── utils.py                    # Shared utility functions
 
-GraphFiles/                      # Input data
+data/                            # Training and test datasets
+├── self_training.txt           # Training data (Self)
+├── self_testing.txt            # Test data (Self)
+└── non_self_testing.txt        # Test data (non-Self)
+
+outputs/                         # Generated detector sets and results
+└── detector_<timestamp>.txt    # VDetector output files
+
+GraphFiles/                      # Input data for graph problems
 ├── CLGraph{A,B,C}.txt          # Coloring problem instances
 ├── GCGraph{A,B,C}.txt          # Graph coloring instances
 └── GPGraph{A,B,C}.txt          # Graph partitioning instances (used)
 
-results/                         # Output solutions
-├── WitnessA.txt               # Best partition for GPGraphA (159 conflicts)
-├── WitnessB.txt               # Best partition for GPGraphB (268 conflicts)
-└── WitnessC.txt               # Best partition for GPGraphC (212 conflicts)
-
-Non-submitttables/              # Testing and tuning utilities
-├── NegSelTesting.py            # Validation against test sets
-├── TrainTune.py                # Parameter tuning experiments
-└── *.txt                       # Test and training data
+results/                         # Optimal solutions for discrete problems
+├── WitnessA.txt                # Best partition for GPGraphA (159 conflicts)
+├── WitnessB.txt                # Best partition for GPGraphB (268 conflicts)
+└── WitnessC.txt                # Best partition for GPGraphC (212 conflicts)
 ```
 
 ## How to Run
 
 ### Negative Selection
+
+**Training - Generate Detector Set:**
 ```bash
-# Ensure self_training.txt is in the nchw73/ directory
-python nchw73/NegSelTraining.py
-# Output: detector_<timestamp>.txt
+uv run python nchw73/NegSelTraining.py
+# Output: outputs/detector_<timestamp>.txt
 ```
+
+**Testing - Validate Detector Set:**
+```bash
+# Test a specific detector set
+uv run python nchw73/NegSelTesting.py detector_Jan28200143.txt
+
+# Or provide full path
+uv run python nchw73/NegSelTesting.py outputs/detector_Jan28200143.txt
+```
+
+**Output metrics:**
+- Detection rate: TP/(TP+FN) - percentage of non-Self correctly identified
+- False alarm rate: FP/(FP+TN) - percentage of Self incorrectly flagged
 
 ### Continuous Optimization
 ```bash
-python nchw73/NatAlgReal.py
+uv run python nchw73/NatAlgReal.py
 # Output: Best minimum value and location printed to stdout
 ```
 
 ### Discrete Optimization
 ```bash
 # Test on different graphs by running each variant
-python nchw73/NatAlgDiscreteA.py  # Graph A (160 vertices)
-python nchw73/NatAlgDiscreteB.py  # Graph B (400 vertices)
-python nchw73/NatAlgDiscreteC.py  # Graph C (800 vertices)
-# Output: Witness<digit>_<username>_<timestamp>.txt
+uv run python nchw73/NatAlgDiscreteA.py  # Graph A (160 vertices)
+uv run python nchw73/NatAlgDiscreteB.py  # Graph B (400 vertices)
+uv run python nchw73/NatAlgDiscreteC.py  # Graph C (800 vertices)
+# Output: results/Witness<digit>_<timestamp>.txt
 ```
 
 ## Algorithms & Results
@@ -127,10 +147,13 @@ For methodology, see the detailed reports:
 
 ## Implementation Notes
 
-- **Language:** Python 3 (standard library only)
-- **No external dependencies:** math, random, time, os, sys
+- **Language:** Python 3.7+
+- **Dependencies:** numpy (managed via `uv`)
+- **Package Management:** Use `uv` commands for dependency management
+  - `uv sync` - synchronize environment with lockfile
+  - `uv run <script>` - execute scripts in managed environment
+  - `uv add <package>` - add new dependencies
 - **Procedural style:** No classes except where essential (e.g., Vertex class for graph representation)
-- **Strict skeleton constraints:** Variables like `username`, `threshold`, `detectors`, `min_f` cannot be renamed
 - **File I/O:** Timestamps used to prevent accidental overwrites of output files
 - **Performance:** Code optimized for accuracy rather than speed (except where noted)
 

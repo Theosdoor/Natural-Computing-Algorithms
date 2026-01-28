@@ -1,57 +1,20 @@
-#################################################################################
-#### PLEASE READ ALL COMMENTS BELOW AND MAKE SURE YOU FOLLOW MY INSTRUCTIONS ####
-#################################################################################
-
-# This is the skeleton program 'NegSelTraining.py' around which you should build your implementation.
-
-# The training set should be in a file 'self_training.txt' (in the same folder as this program).
-
-# The output is a detector set that is in the file 'detector_<timestamp>.txt' where '<timestamp>' is a timestamp
-# so that you do not overwrite previously produced detector sets. You can always rename these files. However,
-# do not tamper with these files in any other way.
-
-# In summary, it is assumed that 'NegSelTraining.py' and 'self_training.txt' are in the same folder
-# and that the file containing the detector set is written in this folder.
-
-# As regards the four values to be entered below
-# - make sure that no comments are inserted after you have entered the values
-# - make sure that the type of 'threshold' is int or float
-# - make sure that the type of 'num_detectors' is int.
-
-# Ensure that your implementation works for data of *general* dimension n and not just for the
-# particular dimension of the given data sets!
-
-###############################################################
-#### ENTER THE CODE FOR THE ALGORITHM YOU ARE IMPLEMENTING ####
-###############################################################
-
 alg_code = "VD"
-
-#####################################################################################################################
-#### ENTER THE THRESHOLD: IF YOU ARE IMPLEMENTING VDETECTOR THEN SET THE THRESHOLD AS YOUR CHOICE OF SELF-RADIUS ####
-#####################################################################################################################
 
 threshold = 0.027
 
-######################################################
-#### ENTER THE INTENDED SIZE OF YOUR DETECTOR SET ####
-######################################################
-
 num_detectors = 600
-
-################################################################
-#### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
-####      THIS INCLUDES IMPORTING ADDITIONAL MODULES!       ####
-################################################################
 
 import time
 import os.path
 import random
 import math
 import sys
-from utils import get_a_timestamp_for_an_output_file, read_points_only
+from utils import get_a_timestamp_for_an_output_file, read_points_only, euclidean_distance
  
-location_of_self = "self_training.txt"
+# Get the project root directory (parent of nchw73/)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+location_of_self = os.path.join(project_root, "data", "self_training.txt")
 
 if not os.path.exists(location_of_self):
     print("\n*** error: {0} does not exist\n".format(location_of_self))
@@ -128,19 +91,15 @@ intended_num_detectors = num_detectors
 ###########################################
 #### NOW YOU CAN ENTER YOUR CODE BELOW ####
 ###########################################
+# VDetector algorithm parameters
 timed = True
-time_limit = 13 # should be 15 in total training and testing
+time_limit = 13  # should be 15 in total training and testing
 
 # algorithm: v-detector (S, c0, c1, threshold, intended_num_detectors)
 
-# parameters
-c0 = 0.9999 # expected coverage rate for detectors covering non-self
-c1 = 0.9999 # expected coverage rate for training set
-alpha = 0.36 # ENHANCEMENT - expand detector radius by alpha * threshold
-
-# define euclidean distance between 2 n-dim vectors
-def dist(x, y):
-    return math.sqrt(sum([(x[i] - y[i])**2 for i in range(n)]))
+c0 = 0.9999  # expected coverage rate for detectors covering non-self
+c1 = 0.9999  # expected coverage rate for training set
+alpha = 0.36  # ENHANCEMENT - expand detector radius by alpha * threshold
 
 def v_detector(): # Self is constant in this case, so I've omitted it as parameter
     D = [] # detector set D
@@ -162,7 +121,7 @@ def v_detector(): # Self is constant in this case, so I've omitted it as paramet
 
             for d in D:
                 # if we have collision
-                if dist(x, d[:-1]) <= d[-1]:
+                if euclidean_distance(x, d[:-1]) <= d[-1]:
                     t0 += 1
                     if t0 >= (1 / (1-c0)): # m = 1 / (1-c0)
                         # output D and terminate
@@ -170,8 +129,8 @@ def v_detector(): # Self is constant in this case, so I've omitted it as paramet
                     phase_one_flag = False
                     break
 
-        for s in Self: # for every point in training set
-            dst = dist(x, s)
+        for s in Self:  # for every point in training set
+            dst = euclidean_distance(x, s)
             if dst - threshold < r: 
                 r = dst - threshold
         
@@ -189,20 +148,11 @@ def v_detector(): # Self is constant in this case, so I've omitted it as paramet
 
 detectors = v_detector()
 
-
-#########################################################
-#### YOU SHOULD HAVE NOW FINISHED ENTERING YOUR CODE ####
-####     DO NOT TOUCH ANYTHING BELOW THIS COMMENT    ####
-#########################################################
-
-# At this point in the execution, you should have computed
-# - the list 'detectors' of your detector set.
-
 now_time = time.time()
 training_time = round(now_time - start_time, 1)
 
 timestamp = get_a_timestamp_for_an_output_file()
-detector_set_location = "detector_" + timestamp + ".txt"
+detector_set_location = os.path.join(project_root, "outputs", "detector_" + timestamp + ".txt")
 
 f = open(detector_set_location, "w")
 

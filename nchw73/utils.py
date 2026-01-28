@@ -22,6 +22,32 @@ def get_a_timestamp_for_an_output_file():
     return timestamp
 
 
+def euclidean_distance(x, y, n=None):
+    """
+    Calculate Euclidean distance between two n-dimensional points.
+    
+    Args:
+        x: First point (list of floats)
+        y: Second point (list of floats)
+        n: Dimension (optional, inferred from x if not provided)
+    
+    Returns:
+        float: Euclidean distance
+    """
+    if n is None:
+        n = len(x)
+    distance = 0
+    for i in range(n):
+        distance = distance + (x[i] - y[i])**2
+    return math.sqrt(distance)
+
+
+# Legacy function name for backwards compatibility
+def Euclidean_distance(n, first_individual, second_individual):
+    """Legacy wrapper for euclidean_distance with original signature."""
+    return euclidean_distance(first_individual, second_individual, n)
+
+
 def read_points_only(f, point_length, num_points, file):
     """
     Read point data from an open file object.

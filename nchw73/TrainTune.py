@@ -4,13 +4,16 @@ import random
 import math
 import sys
 import numpy
-from utils import get_a_timestamp_for_an_output_file, read_points_only, Euclidean_distance
+from utils import get_a_timestamp_for_an_output_file, read_points_only, Euclidean_distance, euclidean_distance
 
 alg_code = "VD"
 threshold = 0.027
 num_detectors = 1000
- 
-location_of_self = "self_training.txt"
+
+# Get the project root directory (parent of nchw73/)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+location_of_self = os.path.join(project_root, "data", "self_training.txt")
 
 if not os.path.exists(location_of_self):
     print("\n*** error: {0} does not exist\n".format(location_of_self))
@@ -73,9 +76,9 @@ def testing(n, alg, detector_set, num_detectors, threshold, individual):
     return detection
 
 # get test sets
-self_testing = "self_testing.txt"
+self_testing = os.path.join(project_root, "data", "self_testing.txt")
 self_location = get_location_of_self_testing(self_testing)
-non_self_testing = "non_self_testing.txt"
+non_self_testing = os.path.join(project_root, "data", "non_self_testing.txt")
 non_self_location = get_location_of_non_self_testing(non_self_testing)
 
 if not os.path.exists(self_location):
@@ -181,14 +184,10 @@ time_limit = 13 # should be 15 in total training and testing
 # c0 = 0.9999 # expected coverage rate for detectors covering non-self
 # c1 = 0.9999 # expected coverage rate for training set
 
-p = 0.5 # detector coverage 
+p = 0.5  # detector coverage
 sample_size = max(5/p, 5/(1-p))
 
-# define euclidean distance between 2 n-dim vectors
-def dist(x, y):
-    return math.sqrt(sum([(x[i] - y[i])**2 for i in range(n)]))
-
-def v_detector(c0, c1, r_self, intended_num_detectors, alpha): # Self is constant in this case, so I've omitted it as parameter
+def v_detector(c0, c1, r_self, intended_num_detectors, alpha):
     D = [] # detector set D
     t1 = 0
     start_t = time.time()
@@ -209,7 +208,7 @@ def v_detector(c0, c1, r_self, intended_num_detectors, alpha): # Self is constan
 
             for d in D:
                 # if we have collision
-                if dist(x, d[:-1]) <= d[-1]:
+                if euclidean_distance(x, d[:-1]) <= d[-1]:
                     t0 += 1
                     if t0 >= (1 / (1-c0)): # m = 1 / (1-c0)
                         # output D and terminate
@@ -217,8 +216,8 @@ def v_detector(c0, c1, r_self, intended_num_detectors, alpha): # Self is constan
                     phase_one_flag = False
                     break
 
-        for s in Self: # for every point in training set
-            dst = dist(x, s)
+        for s in Self:  # for every point in training set
+            dst = euclidean_distance(x, s)
             if dst - r_self < r: 
                 r = dst - r_self
         
@@ -327,7 +326,7 @@ now_time = time.time()
 training_time = round(now_time - start_time, 1)
 
 timestamp = get_a_timestamp_for_an_output_file()
-detector_set_location = "detector_TT_" + timestamp + ".txt"
+detector_set_location = os.path.join(project_root, "outputs", "detector_TT_" + timestamp + ".txt")
 
 f = open(detector_set_location, "w")
 
