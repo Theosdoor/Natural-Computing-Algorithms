@@ -19,4 +19,4 @@ neighbour_limit: 4  # maximum number of neighbours to check in flight
 
 # Timing
 timed: true
-max_time: 58  # maximum time in seconds
+max_time: 15  # maximum time in seconds

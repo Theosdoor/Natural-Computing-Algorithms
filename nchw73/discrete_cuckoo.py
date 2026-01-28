@@ -1,7 +1,7 @@
 """
 Natural Algorithm for Discrete Problems: Cuckoo Search for Graph Partitioning
-Usage: python NatAlgDiscrete.py <config_file.yaml>
-Example: python NatAlgDiscrete.py config_A.yaml
+Usage: python discrete_cuckoo.py <config_file.yaml>
+Example: python discrete_cuckoo.py config_A.yaml
 """
 
 alg_code = "CS"
@@ -84,8 +84,8 @@ def read_the_graph_file(problem_code, graph_digit):
 def main():
     # Load configuration
     if len(sys.argv) < 2:
-        print("Usage: python NatAlgDiscrete.py <config_file.yaml>")
-        print("Example: python NatAlgDiscrete.py config_A.yaml")
+        print("Usage: python discrete_cuckoo.py <config_file.yaml>")
+        print("Example: python discrete_cuckoo.py config_A.yaml")
         sys.exit(1)
     
     config_path = sys.argv[1]
@@ -547,18 +547,7 @@ def main():
         date_time = now.strftime("%d/%m/%Y-%H:%M:%S")
         f.write("date-time = {0}\n".format(date_time))
         
-        alg_number = ord(alg_code[0]) + ord(alg_code[1])
-        len_date_time = len(date_time)
-        date_time_number = 0
-        for i in range(0, len_date_time):
-            date_time_number = date_time_number + ord(date_time[i])
-        
-        diff = abs(partition[0] - partition[v - 1])
-        for i in range(0, v - 1):
-            diff = diff + abs(partition[i + 1] - partition[i])
-        
-        certificate = user_number + alg_number + date_time_number + diff
-        f.write("certificate = {0}\n".format(certificate))
+
 
         for i in range(0, v):
             f.write("{0},".format(partition[i]))
