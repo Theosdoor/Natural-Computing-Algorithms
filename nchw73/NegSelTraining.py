@@ -15,19 +15,11 @@
 
 # As regards the four values to be entered below
 # - make sure that no comments are inserted after you have entered the values
-# - make sure that 'username' is lower-case
-# - make sure that the first two values appear within double quotes
 # - make sure that the type of 'threshold' is int or float
 # - make sure that the type of 'num_detectors' is int.
 
 # Ensure that your implementation works for data of *general* dimension n and not just for the
 # particular dimension of the given data sets!
-
-##############################
-#### ENTER YOUR USER-NAME ####
-##############################
-
-username = "nchw73"
 
 ###############################################################
 #### ENTER THE CODE FOR THE ALGORITHM YOU ARE IMPLEMENTING ####
@@ -57,42 +49,7 @@ import os.path
 import random
 import math
 import sys
-    
-def get_a_timestamp_for_an_output_file():
-    local_time = time.asctime(time.localtime(time.time()))
-    timestamp = local_time[4:7] + local_time[8:10] + local_time[11:13] + local_time[14:16] + local_time[17:19]
-    timestamp = timestamp.replace(" ", "0") 
-    return timestamp
-
-def read_points_only(f, point_length, num_points, file):
-    list_of_points = []
-    count = 0
-    error = []
-    the_line = f.readline()
-    while the_line != "":
-        points = the_line.split("[")
-        points.pop(0)
-        how_many = len(points)
-        for i in range(0, how_many):
-            if points[i][len(points[i]) - 1] == ",":
-                points[i] = points[i][0:len(points[i]) - 2]
-            elif points[i][len(points[i]) - 1] == "\n":
-                points[i] = points[i][0:len(points[i]) - 3]
-            else:
-                points[i] = points[i][0:len(points[i]) - 1]
-            split_point = points[i].split(",")
-            if len(split_point) != point_length:
-                error.append("\n*** error: point {0} has the wrong number of components\n".format(i + 1))
-                return list_of_points, error
-            numeric_point = []
-            for j in range(0, point_length):
-                numeric_point.append(float(split_point[j]))
-            list_of_points.append(numeric_point[:])
-            count = count + 1
-        the_line = f.readline()
-    if count != num_points:
-        error.append("\n*** error: there should be {0} points in {1} but there are {2}\n".format(num_points, file, count))
-    return list_of_points, error
+from utils import get_a_timestamp_for_an_output_file, read_points_only
  
 location_of_self = "self_training.txt"
 
@@ -249,7 +206,6 @@ detector_set_location = "detector_" + timestamp + ".txt"
 
 f = open(detector_set_location, "w")
 
-f.write("username = {0}\n".format(username))
 f.write("detector set\n")
 f.write("algorithm code = {0}\n".format(alg_code))
 f.write("dimension = {0}\n".format(n))

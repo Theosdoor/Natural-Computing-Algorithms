@@ -4,23 +4,16 @@
 
 # This is the skeleton program 'NatAlgDiscrete.py' around which you should build your implementation.
 
-# On input 'GCGraphA.txt', say, the output is a witness set that is in the file 'WitnessA_<username>_<timestamp>.txt' where
+# On input 'GCGraphA.txt', say, the output is a witness set that is in the file 'WitnessA_<timestamp>.txt' where
 # '<timestamp>' is a timestamp so that you do not overwrite previously produced witnesses. You can always
 # rename these files. However, apart from renaming them you should not tamper with them in any other way.
 
 # It is assumed that all graph files are in a folder called 'GraphFiles' that lies in the same folder as
 # this program.
 
-# As regards the four values to be entered below
-# - make sure that the all four values appear within double quotes
-# - make sure that 'username' is lower-case
+# As regards the values to be entered below:
+# - make sure that all values appear within double quotes
 # - make sure that no comments are inserted after you have entered the values.
-
-##############################
-#### ENTER YOUR USER-NAME ####
-##############################
-
-username = "nchw73"
 
 ###############################################################
 #### ENTER THE CODE FOR THE ALGORITHM YOU ARE IMPLEMENTING ####
@@ -51,20 +44,8 @@ import random
 import math
 import sys
 from datetime import datetime
-
-def location_of_GraphFiles(problem_code, graph_digit):
-    input_file = os.path.join("GraphFiles", problem_code + "Graph" + graph_digit + ".txt")
-    return input_file
-
-def location_of_witness_set(username, graph_digit, timestamp):
-    witness_set = "Witness" + graph_digit + "_" + username + "_" + timestamp + ".txt"
-    return witness_set
-
-def get_a_timestamp_for_an_output_file():
-    local_time = time.asctime(time.localtime(time.time()))
-    timestamp = local_time[4:7] + local_time[8:10] + local_time[11:13] + local_time[14:16] + local_time[17:19]
-    timestamp = timestamp.replace(" ", "0") 
-    return timestamp
+import numpy as np
+from utils import location_of_GraphFiles, location_of_witness_set, get_a_timestamp_for_an_output_file
 
 def read_the_graph_file(problem_code, graph_digit):
     vertices_tag =          "number of vertices = "
@@ -255,8 +236,6 @@ start_time = time.time()
 ####################################################
 #### FIRST IMPORT ANY MODULES IMMEDIATELY BELOW ####
 ####################################################
-
-import numpy as np
 
 ##########################################################
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####
@@ -925,11 +904,10 @@ if alg_code == "BA":
 if error_flag == False:
     
     timestamp = get_a_timestamp_for_an_output_file()
-    witness_set = location_of_witness_set(username, graph_digit, timestamp)
+    witness_set = location_of_witness_set(graph_digit, timestamp)
 
     f = open(witness_set, "w")
 
-    f.write("username = {0}\n".format(username))
     f.write("problem code = {0}\n".format(problem_code))
     f.write("graph = {0}Graph{1}.txt with (|V|,|E|) = ({2},{3})\n".format(problem_code, graph_digit, v, len(edges)))
     if problem_code == "GC":
@@ -961,10 +939,6 @@ if error_flag == False:
     date_time = now.strftime("%d/%m/%Y-%H:%M:%S")
     f.write("date-time = {0}\n".format(date_time))
     
-    len_username = len(username)
-    user_number = 0
-    for i in range(0, len_username):
-        user_number = user_number + ord(username[i])
     alg_number = ord(alg_code[0]) + ord(alg_code[1])
     len_date_time = len(date_time)
     date_time_number = 0
@@ -1009,7 +983,7 @@ if error_flag == False:
 
     f.close()
         
-    print("witness file 'Witness{0}_{1}.txt' saved for student {2}".format(graph_digit, timestamp, username))
+    print("witness file 'Witness{0}_{1}.txt' saved".format(graph_digit, timestamp))
 
 else:
 

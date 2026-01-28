@@ -18,6 +18,7 @@ import sys
 import os.path
 import math
 import time
+from utils import read_points_only, Euclidean_distance
 
 def get_location_of_self_testing(self_testing):
     self_location = self_testing
@@ -30,43 +31,6 @@ def get_location_of_non_self_testing(non_self_testing):
 def get_location_of_detector_set(detector_set):
     detector_set_location = detector_set
     return detector_set_location
-
-def read_points_only(f, point_length, num_points, file):
-    list_of_points = []
-    count = 0
-    error = []
-    the_line = f.readline()
-    while the_line != "":
-        points = the_line.split("[")
-        points.pop(0)
-        how_many = len(points)
-        for i in range(0, how_many):
-            if points[i][len(points[i]) - 1] == ",":
-                points[i] = points[i][0:len(points[i]) - 2]
-            elif points[i][len(points[i]) - 1] == "\n":
-                points[i] = points[i][0:len(points[i]) - 3]
-            else:
-                points[i] = points[i][0:len(points[i]) - 1]
-            split_point = points[i].split(",")
-            if len(split_point) != point_length:
-                error.append("\n*** error: point {0} has the wrong number of components\n".format(i + 1))
-                return list_of_points, error
-            numeric_point = []
-            for j in range(0, point_length):
-                numeric_point.append(float(split_point[j]))
-            list_of_points.append(numeric_point[:])
-            count = count + 1
-        the_line = f.readline()
-    if count != num_points:
-        error.append("\n*** error: there should be {0} points in {1} but there are {2}\n".format(num_points, file, count))
-    return list_of_points, error
-
-def Euclidean_distance(n, first_individual, second_individual):
-    distance = 0
-    for i in range(0, n):
-        distance = distance + (first_individual[i] - second_individual[i])**2
-    distance = math.sqrt(distance)
-    return distance
 
 def testing(n, alg, detector_set, num_detectors, threshold, individual):
     detection = False
@@ -105,9 +69,6 @@ if __name__ == "__main__":
 
     f = open(detector_set_location, "r")
 
-    username = f.readline()
-    length_of_username = len(username)
-    username = username[len("username = "):length_of_username - 1]
     detector = f.readline()
     if detector != "detector set\n":
         print("\n*** error: the file {0} is not denoted as a detector set\n".format(detector_set_location))
@@ -238,7 +199,7 @@ if __name__ == "__main__":
     now_time = time.time()
     testing_time = round(now_time - start_time, 1)
 
-    print("This detector set was built by '{0}' using algorithm '{1}' on data of dimension {2}.".format(username, alg_code, self_point_length))
+    print("This detector set was built using algorithm '{0}' on data of dimension {1}.".format(alg_code, self_point_length))
     if alg_code != "VD":
         print("The threshold distance is {0} and the time to build was {1}.".format(threshold, training_time))
     else:

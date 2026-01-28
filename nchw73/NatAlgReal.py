@@ -1,36 +1,4 @@
-#################################################################################
-#### PLEASE READ ALL COMMENTS BELOW AND MAKE SURE YOU FOLLOW MY INSTRUCTIONS ####
-#################################################################################
-
-# This is the skeleton program 'NatAlgReal.py' around which you should build your implementation.
-# Please read through this program and follow the instructions given.
-
-# There are no input or output files, with the results printed to the standard output.
-
-# As regards the two values to be entered below
-# - make sure that the first two values appear within double quotes
-# - make sure that 'username' is lower-case
-# - make sure that no comments are inserted after you have entered the values.
-
-# Ensure that your implementation works for *arbitrary* hard-coded functions of arbitrary
-# dimension and arbitrary min- and max-ranges!
-
-##############################
-#### ENTER YOUR USER-NAME ####
-##############################
-
-username = "nchw73"
-
-###############################################################
-#### ENTER THE CODE FOR THE ALGORITHM YOU ARE IMPLEMENTING ####
-###############################################################
-
 alg_code = "CS"
-
-################################################################
-#### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
-####      THIS INCLUDES IMPORTING ADDITIONAL MODULES!       ####
-################################################################
 
 import time
 import random
@@ -38,6 +6,7 @@ import math
 import sys
 import os
 import datetime
+import numpy as np
 
 def compute_f(point):
     f = -1 * math.sin(point[0])*math.sqrt(point[0]) * math.sin(point[1])*math.sqrt(point[1]) * \
@@ -52,8 +21,8 @@ max_range = [10, 10, 10, 10]
 start_time = time.time()
 
 #########################################################################################
-#### YOU SHOULDN'T HAVE TOUCHED *ANYTHING* UP UNTIL NOW APART FROM SUPPLYING VALUES  ####
-####                 FOR 'username' and 'alg_code' AS REQUESTED ABOVE.               ####
+#### YOU SHOULDN'T HAVE TOUCHED *ANYTHING* UP UNTIL NOW APART FROM SUPPLYING VALUES ####
+####                      FOR 'alg_code' AS REQUESTED ABOVE.                         ####
 ####                        NOW READ THE FOLLOWING CAREFULLY!                        ####
 #########################################################################################
 
@@ -70,7 +39,7 @@ start_time = time.time()
 #   - the reserved variable 'minimum' is a list of 'n' entries (integer or float) holding the point at which
 #     your value of 'min_f' is attained.
 
-# Note that the variables 'username', 'alg_code', 'f', 'point', 'min_f', 'n', 'min_range', 'max_range' and
+# Note that the variables 'alg_code', 'f', 'point', 'min_f', 'n', 'min_range', 'max_range' and
 # 'minimum' are all reserved.
 
 # FOR THE RESERVED VARIABLES BELOW, YOU MUST ENSURE THAT ON TERMINATION THE TYPE
@@ -142,8 +111,6 @@ start_time = time.time()
 ####################################################
 #### FIRST IMPORT ANY MODULES IMMEDIATELY BELOW ####
 ####################################################
-
-import numpy as np
 
 ##########################################################
 #### NOW INITIALIZE YOUR PARAMETERS IMMEDIATELY BELOW ####

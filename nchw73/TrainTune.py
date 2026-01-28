@@ -1,98 +1,14 @@
-#################################################################################
-#### PLEASE READ ALL COMMENTS BELOW AND MAKE SURE YOU FOLLOW MY INSTRUCTIONS ####
-#################################################################################
-
-# This is the skeleton program 'NegSelTraining.py' around which you should build your implementation.
-
-# The training set should be in a file 'self_training.txt' (in the same folder as this program).
-
-# The output is a detector set that is in the file 'detector_<timestamp>.txt' where '<timestamp>' is a timestamp
-# so that you do not overwrite previously produced detector sets. You can always rename these files. However,
-# do not tamper with these files in any other way.
-
-# In summary, it is assumed that 'NegSelTraining.py' and 'self_training.txt' are in the same folder
-# and that the file containing the detector set is written in this folder.
-
-# As regards the four values to be entered below
-# - make sure that no comments are inserted after you have entered the values
-# - make sure that 'username' is lower-case
-# - make sure that the first two values appear within double quotes
-# - make sure that the type of 'threshold' is int or float
-# - make sure that the type of 'num_detectors' is int.
-
-# Ensure that your implementation works for data of *general* dimension n and not just for the
-# particular dimension of the given data sets!
-
-##############################
-#### ENTER YOUR USER-NAME ####
-##############################
-
-username = "nchw73"
-
-###############################################################
-#### ENTER THE CODE FOR THE ALGORITHM YOU ARE IMPLEMENTING ####
-###############################################################
-
-alg_code = "VD"
-
-#####################################################################################################################
-#### ENTER THE THRESHOLD: IF YOU ARE IMPLEMENTING VDETECTOR THEN SET THE THRESHOLD AS YOUR CHOICE OF SELF-RADIUS ####
-#####################################################################################################################
-
-threshold = 0.027
-
-######################################################
-#### ENTER THE INTENDED SIZE OF YOUR DETECTOR SET ####
-######################################################
-
-num_detectors = 1000
-
-################################################################
-#### DO NOT TOUCH ANYTHING BELOW UNTIL I TELL YOU TO DO SO! ####
-####      THIS INCLUDES IMPORTING ADDITIONAL MODULES!       ####
-################################################################
-
 import time
 import os.path
 import random
 import math
 import sys
-    
-def get_a_timestamp_for_an_output_file():
-    local_time = time.asctime(time.localtime(time.time()))
-    timestamp = local_time[4:7] + local_time[8:10] + local_time[11:13] + local_time[14:16] + local_time[17:19]
-    timestamp = timestamp.replace(" ", "0") 
-    return timestamp
+import numpy
+from utils import get_a_timestamp_for_an_output_file, read_points_only, Euclidean_distance
 
-def read_points_only(f, point_length, num_points, file):
-    list_of_points = []
-    count = 0
-    error = []
-    the_line = f.readline()
-    while the_line != "":
-        points = the_line.split("[")
-        points.pop(0)
-        how_many = len(points)
-        for i in range(0, how_many):
-            if points[i][len(points[i]) - 1] == ",":
-                points[i] = points[i][0:len(points[i]) - 2]
-            elif points[i][len(points[i]) - 1] == "\n":
-                points[i] = points[i][0:len(points[i]) - 3]
-            else:
-                points[i] = points[i][0:len(points[i]) - 1]
-            split_point = points[i].split(",")
-            if len(split_point) != point_length:
-                error.append("\n*** error: point {0} has the wrong number of components\n".format(i + 1))
-                return list_of_points, error
-            numeric_point = []
-            for j in range(0, point_length):
-                numeric_point.append(float(split_point[j]))
-            list_of_points.append(numeric_point[:])
-            count = count + 1
-        the_line = f.readline()
-    if count != num_points:
-        error.append("\n*** error: there should be {0} points in {1} but there are {2}\n".format(num_points, file, count))
-    return list_of_points, error
+alg_code = "VD"
+threshold = 0.027
+num_detectors = 1000
  
 location_of_self = "self_training.txt"
 
@@ -141,13 +57,6 @@ def get_location_of_self_testing(self_testing):
 def get_location_of_non_self_testing(non_self_testing):
     non_self_location = non_self_testing
     return non_self_location
-
-def Euclidean_distance(n, first_individual, second_individual):
-    distance = 0
-    for i in range(0, n):
-        distance = distance + (first_individual[i] - second_individual[i])**2
-    distance = math.sqrt(distance)
-    return distance
 
 def testing(n, alg, detector_set, num_detectors, threshold, individual):
     detection = False
@@ -236,8 +145,6 @@ if error != []:
 
 # test fn
 def test(detectors):
-    # print("\nevaluating detector set ...\n")
-
     start_time = time.time()
     
     FP = 0
@@ -264,46 +171,6 @@ def test(detectors):
 
     return det_rate, far, testing_time
 
-#########################################################################################
-#### YOU SHOULDN'T HAVE TOUCHED *ANYTHING* UP UNTIL NOW APART FROM SUPPLYING VALUES  ####
-#### FOR 'username', 'alg_code', 'threshold' and 'num_detectors' AS REQUESTED ABOVE. ####
-####                        NOW READ THE FOLLOWING CAREFULLY!                        ####
-#########################################################################################
-
-# The training data has now been read with the following reserved variables:
-#   - 'n' = the dimension of the points in the training set                 int
-#   - 'threshold' = the threshold or self-radius, as appropriate            int or float
-#   - 'Self_num_points' = the number of points in the training set
-#   - 'Self' = the list of points in the training set.
-# These are reserved variables and their names should not be changed.
-
-# You also have the reserved variables
-#   - 'user_name', 'alg_code', 'threshold', 'num_detectors', 'intended_num_detectors' and 'start_time'.
-# Remember: if 'alg_code' = 'VD' then 'threshold' denotes your chosen self-radius.
-
-# You need to initialize any other parameters (if you are implementing 'Real-valued Negative Selection'
-# or 'VDetector') yourself in your code below.
-
-# The list of detectors that your code generates needs to be stored in the variable 'detectors'.
-# This is a reserved variable and has just been initialized as empty above. You need to ensure that
-# your computed detector set is stored in 'detectors' as a list of points, i.e., as a list of lists-of-
-# floats-of-length-'n' for NS and RV and 'n' + 1 for VD (remember: a detector for VD is a point plus
-# its individual radius - see Lecture 4).
-
-# FOR ALL OF THE RESERVED VARIABLES BELOW, YOU MUST ENSURE THAT ON TERMINATION THE TYPE
-# OF THE RESPECTIVE VARIABLE IS AS SHOWN.
-
-#  - 'n'                int
-#  - 'threshold'        int or float
-
-# Finally, if you choose to use numpy then import it below (and don't forget to ensure that 
-# variables are of the correct type on termination).
-
-###########################################
-#### NOW YOU CAN ENTER YOUR CODE BELOW ####
-###########################################
-
-import numpy
 added_note = ""
 time_limit = 13 # should be 15 in total training and testing
 
@@ -441,8 +308,6 @@ for N in Ns:
                         avg_det_rate += det_rate
                         avg_far += far
                         avd_len += len(detectors)
-                        # print("det_rate: {0}, far: {1}".format(det_rate, far))
-                        # print("Num detectors: {0}".format(len(detectors)))
                     
                     det_rate = round(avg_det_rate / max_it, 2)
                     far = round(avg_far / max_it, 2)
@@ -450,64 +315,13 @@ for N in Ns:
                     print("det_rate: {0}, far: {1}".format(det_rate, far))
                     print("Num detectors: {0}".format(avg_len))
 
-                    # if (det_rate > best_det_rate and far <= max_far) or (far < best_far and det_rate >= min_det):
-                    #     # print("* NEW BEST *")
-                    #     best_det_rate = det_rate
-                    #     best_far = far
-                    #     best_detectors = detectors
-                    #     best_c0 = c0
-                    #     best_c1 = c1
-                    #     best_threshold = threshold
-                    #     best_N = N
-                    #     last_best_update = it
-                        # if best_far < max_far: # if we've found a smaller far, update max_far
-                        #     # max_far = best_far + 0.1*best_far
-                        #     print("updated max_far to {0}".format(max_far))
-                        # if best_det_rate > min_det:
-                            # min_det = best_det_rate - 0.1*best_det_rate
-                            # print("updated min_det to {0}".format(min_det))
-                            
-
                     if det_rate > sat_det and far < sat_far:
                         goodEnough = True
                         break
-                    # # if updated best last round, try again to see for another improvement
-                    # if (it == max_it - 1) and (it - last_best_update == 1):
-                    #     max_it+=1
-                    
-                    # it += 1
 
 detectors = best_detectors
 
-# save to vars
-# c0 = best_c0
-# c1 = best_c1
-# threshold = best_threshold # already in note
-# intended_num_detectors = best_N # already in note
-
-# added_note += "\ndet_rate: {0}, far: {1}".format(best_det_rate, best_far)
-# added_note += "\nc0: {0}, c1: {1}".format(c0, c1)
-# added_note += '\n'
-
 sys.exit()
-
-
-
-# ------------------ reformatting ------------------
-
-# problem - detectors[0][2] being called later which doesn't exist (bc detectors[0] is [a,b,c],r)
-# for i in range(len(detectors)):
-#     d = detectors[i]
-#     d = [d[0][0], d[0][1], d[0][2], d[1]] # d = [a,b,c,r] instead of [[a,b,c],r]
-#     detectors[i] = d
-
-#########################################################
-#### YOU SHOULD HAVE NOW FINISHED ENTERING YOUR CODE ####
-####     DO NOT TOUCH ANYTHING BELOW THIS COMMENT    ####
-#########################################################
-
-# At this point in the execution, you should have computed
-# - the list 'detectors' of your detector set.
 
 now_time = time.time()
 training_time = round(now_time - start_time, 1)
@@ -517,7 +331,6 @@ detector_set_location = "detector_TT_" + timestamp + ".txt"
 
 f = open(detector_set_location, "w")
 
-f.write("username = {0}\n".format(username))
 f.write("detector set\n")
 f.write("algorithm code = {0}\n".format(alg_code))
 f.write("dimension = {0}\n".format(n))
@@ -550,7 +363,7 @@ print("detector set saved as {0}\n".format(detector_set_location))
 
 
 # TESTING
-print("This detector set was built by '{0}' using algorithm '{1}' on data of dimension {2}.".format(username, alg_code, self_point_length))
+print("This detector set was built using algorithm '{0}' on data of dimension {1}.".format(alg_code, self_point_length))
 print("The self-radius is {0} and the time to build was {1}.".format(threshold, training_time))
 print("From {0} test-individuals from Self and {1} test-individuals from non-Self:".format(self_num_points, non_self_num_points))
 print("   - detection rate   TP/(TP+FN) = {0}%".format(det_rate))
