@@ -1,0 +1,362 @@
+FEEDBACK FOR STUDENT nchw73 [Theodore Farrell]:
+
+ - NegSel mark 24.63 out of 34
+
+ - NatAlgReal mark 10.49 out of 18
+
+ - NatAlgDiscrete mark 37.27 out of 48
+
+ - TOTAL MARK 73%
+
+
+
+The personalized feedback following should be read in conjunction with the general feedback below. Note that the comments for the performance marks are automatically generated. You should look at the results I obtained when I ran your codes which are available below under OUTPUT FILES FROM STUDENT PROGRAM EXECUTIONS for further information. If any student wants more information as regards my analysis of their reports or my runs of their codes then they should contact me.
+
+
+
+PERSONALIZED FEEDBACK:
+
+
+
+NegSel feedback: Your detection rate was good or very good. Your false alarm rate was excellent or better. Your timings were perfect. Your experimentation was very good, thorough and systematically undertaken. The narrative was reasonably clear and informative. There was too much focus on describing results rather than, e.g., methodology. You have shown some aspects of good insight. Your enhancements were reasonable. There was a distinct lack of detail. 
+
+
+
+NatAlgReal feedback: Your minimum was excellent or better. Your timings were perfect. There appears to be a distinct lack of basic experimentation. I was looking for structured, thorough experimentation that was undertaken systematically. The narrative was lacking in terms of providing useful and relevant details. The narrative was not structured around experimentation, insight and enhancement. The insight you have gained appears to be very limited. You appeared not to have enhanced the basic algorithm. 
+
+
+
+NatAlgDiscreteA performance feedback: Your WitnessA solution was in the first quartile of all student solutions. When I ran your code, the solution obtained was in the third quartile of all solutions. When I ran your code, it ran within the time bound. 
+
+
+
+NatAlgDiscreteB performance feedback: Your WitnessB solution was in the first quartile of all student solutions. When I ran your code, the solution obtained was in the second quartile of all solutions. When I ran your code, it ran within the time bound. 
+
+
+
+NatAlgDiscreteC performance feedback: Your WitnessC solution was in the first quartile of all student solutions. When I ran your code, the solution obtained was in the second quartile of all solutions. When I ran your code, it ran within the time bound. 
+
+
+
+NatAlgDiscrete report feedback: The experimentation was too ad hoc and should have been more systematic and coherently undertaken. I was looking for structured, thorough experimentation that was undertaken systematically. Your discretization strategy was reasonably well explained but some aspects suffered from a lack of clarity. More detail is required. Your narrative was generally clear and descriptive. It appears that some reasonable insight has been gained. Your enhancements were very good and showed aspects of originality and depth. You should have cited the FM algorithm but I have overlooked this. 
+
+
+
+VALIDATION OF THE PROGRAMS SUBMITTED BY THE STUDENT:
+
+
+
+Validation of student nchw73 after submission [date 7/12/2024, time 12:58]:
+
+
+
+'NegSelTraining.py' exists
+
+'NatAlgReal.py' exists
+
+'NatAlgDiscreteA.py' exists
+
+'NatAlgDiscreteB.py' exists
+
+'NatAlgDiscreteC.py' exists
+
+'WitnessA.txt' exists
+
+'WitnessB.txt' exists
+
+'WitnessC.txt' exists
+
+'NegSelReport.pdf' exists
+
+'NatAlgReport.pdf' exists
+
+'validation.txt' exists
+
+
+
+for 'NegSelTraining.py':
+
+ username = 'nchw73'; algorithm code = 'VD'
+
+for 'NatAlgReal.py':
+
+ username = 'nchw73'; algorithm code = 'CS'
+
+for 'NatAlgDiscreteA.py':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'A'
+
+for 'NatAlgDiscreteB.py':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'B'
+
+for 'NatAlgDiscreteC.py':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'C'
+
+
+
+for 'WitnessA.txt':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'A'
+
+ parameters = [n = 160, num_cyc = 100000, N = 50, p = 0.5, q = 0.25, alpha = 2.0, beta = 1.5]
+
+ conflicts = 159; elapsed time = 1010.5
+
+for 'WitnessB.txt':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'B'
+
+ parameters = [n = 400, num_cyc = 3000, N = 40, p = 0.5, q = 0.25, alpha = 2.0, beta = 1.5]
+
+ conflicts = 268; elapsed time = 1907.3
+
+for 'WitnessC.txt':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'C'
+
+ parameters = [n = 800, num_cyc = 3000, N = 20, p = 0.5, q = 0.25, alpha = 2.0, beta = 1.5]
+
+ conflicts = 212; elapsed time = 3251.7
+
+
+
+The submission has successfully validated!
+
+
+
+OUTPUT FILES FROM STUDENT PROGRAM EXECUTIONS:
+
+
+
+NegSel:
+
+The detector set was built using algorithm 'VD' on data of dimension 3 in 'self_training.txt'.
+
+The intended number of detectors was to be 600 and 341 detectors were actually generated.
+
+The self-radius was 0.027 and the time-to-build was 13.0.
+
+From 3000 test-individuals from Self and 3000 test-individuals from non-Self:
+
+ - detection rate TP/(TP+FN) = 74.83%
+
+ - false alarm rate FP/(FP+TN) = 6.37%
+
+ - elapsed testing time = 3.3
+
+
+
+NatAlgReal:
+
+The algorithm implemented was 'CS': associated parameters [n = 4, num_cyc = 24000, N = 50, p = 0.6, q = 0.25, alpha = 1.6, beta = 1.5].
+
+A minimum value of -61.36694883668319 and a minimum point of [7.913503623484962,7.755866338616957,7.91180360931302,7.905321616456834] has been found.
+
+The elapsed time was 10.0.
+
+
+
+NatAlgDiscrete WitnessA:
+
+username = nchw73
+
+problem code = GP
+
+graph = GPGraphA.txt with (|V|,|E|) = (160,425)
+
+number of partition sets = 4
+
+algorithm code = CS
+
+associated parameters [n, num_cyc, N, p, q, alpha, beta] = [160, 100000, 50, 0.5, 0.25, 2, 1.5]
+
+conflicts = 182
+
+elapsed time = 58.3
+
+1,4,4,1,1,3,2,3,2,3,1,3,4,1,2,1,1,3,3,3,1,4,2,3,4,2,2,2,4,1,3,3,4,3,4,4,1,4,3,2,
+
+1,1,2,1,3,3,1,3,4,1,4,1,1,2,4,3,4,3,4,4,4,2,3,3,2,1,1,3,3,1,1,4,4,1,4,1,2,2,3,1,
+
+3,4,2,1,3,1,3,3,1,4,2,4,3,4,2,4,4,3,1,3,4,2,2,2,4,2,3,3,3,4,1,3,3,2,4,4,2,2,2,4,
+
+1,4,1,2,3,1,2,2,3,2,2,2,4,2,1,3,1,2,2,2,4,3,3,1,2,4,2,4,1,4,2,4,1,1,1,4,2,2,3,1,
+
+
+
+NatAlgDiscrete WitnessB:
+
+username = nchw73
+
+problem code = GP
+
+graph = GPGraphB.txt with (|V|,|E|) = (400,867)
+
+number of partition sets = 4
+
+algorithm code = CS
+
+associated parameters [n, num_cyc, N, p, q, alpha, beta] = [400, 30000, 40, 0.7, 0.25, 2, 1.5]
+
+conflicts = 308
+
+elapsed time = 58.3
+
+1,4,4,1,4,3,3,1,4,1,3,3,1,1,3,4,4,3,1,3,1,4,1,2,1,3,4,2,3,2,1,1,4,2,2,2,1,2,4,2,
+
+1,1,1,1,2,3,3,3,1,2,2,4,4,2,1,4,2,3,1,2,4,2,1,3,3,2,3,4,1,2,4,2,3,4,2,3,4,2,4,2,
+
+1,4,1,1,4,1,3,4,3,4,2,1,3,3,4,1,2,1,3,3,3,2,2,3,3,4,1,4,3,3,4,4,4,4,2,4,3,2,3,4,
+
+2,3,3,1,2,3,4,2,1,3,3,1,1,3,3,4,2,4,4,4,3,3,4,1,1,2,3,2,3,2,3,2,3,4,3,2,4,2,4,1,
+
+1,1,2,3,4,4,3,1,2,2,4,4,2,2,4,2,2,1,2,2,4,4,2,1,2,2,3,1,1,3,1,4,3,2,3,2,1,2,4,1,
+
+1,2,2,4,4,1,1,1,1,1,3,4,3,4,3,2,4,3,4,3,4,1,2,2,3,1,4,1,4,1,4,3,1,4,4,2,3,4,4,3,
+
+3,1,2,4,1,3,3,3,4,2,4,2,3,1,4,1,2,3,1,2,3,3,2,4,2,1,2,2,2,2,1,2,1,4,2,3,2,4,3,4,
+
+1,2,4,3,1,2,4,1,1,1,2,3,4,2,2,4,1,2,4,1,4,2,3,4,3,1,1,2,1,4,4,4,3,4,3,3,3,2,3,3,
+
+3,2,1,1,4,1,3,3,1,3,1,1,1,3,4,1,3,3,2,1,2,4,4,4,1,4,3,4,2,1,2,3,4,2,4,2,3,4,1,1,
+
+3,2,2,2,1,1,1,2,4,3,4,2,1,3,3,2,3,1,4,2,1,2,1,1,2,4,1,2,2,3,3,4,2,4,1,4,3,1,3,3,
+
+
+
+NatAlgDiscrete WitnessC:
+
+username = nchw73
+
+problem code = GP
+
+graph = GPGraphC.txt with (|V|,|E|) = (800,920)
+
+number of partition sets = 8
+
+algorithm code = CS
+
+associated parameters [n, num_cyc, N, p, q, alpha, beta] = [800, 25000, 30, 0.7, 0.4, 2, 1.5]
+
+conflicts = 225
+
+elapsed time = 58.3
+
+2,4,3,5,5,3,6,4,3,5,1,7,8,7,6,8,5,8,6,7,7,7,2,7,2,2,4,6,7,7,1,5,2,5,5,4,4,7,5,4,
+
+6,1,7,5,3,7,8,5,4,8,2,5,4,2,6,8,2,3,8,1,8,4,7,7,1,3,6,1,3,8,6,2,1,2,1,8,6,3,7,5,
+
+6,4,2,7,2,1,2,2,7,8,8,6,5,6,4,7,5,5,4,8,6,3,2,6,8,6,3,4,3,4,5,7,5,3,3,4,7,1,5,3,
+
+3,5,6,2,8,3,4,7,3,3,3,3,2,2,7,8,3,6,1,1,4,7,5,7,5,6,5,4,6,5,7,2,4,7,3,6,3,1,7,4,
+
+2,2,4,3,4,6,8,7,4,4,1,3,6,3,7,7,5,5,1,2,2,8,8,3,1,3,2,3,4,3,2,8,8,3,5,6,5,1,6,1,
+
+1,8,7,3,3,6,2,5,1,7,4,5,1,2,8,1,4,1,3,8,1,2,4,4,1,1,6,8,1,6,4,7,5,7,7,8,1,1,1,2,
+
+1,5,5,3,5,8,4,3,7,1,5,8,3,4,2,2,1,6,2,2,7,4,6,6,4,7,8,2,5,8,1,1,6,5,6,8,6,1,7,2,
+
+4,2,3,5,6,8,7,6,5,4,8,3,1,2,8,3,4,7,4,3,6,8,1,3,5,7,1,4,7,6,3,4,4,8,3,3,2,4,5,6,
+
+3,8,6,1,2,8,3,8,1,3,2,4,2,5,8,6,5,8,7,8,3,4,8,1,8,2,3,2,1,6,8,2,1,6,2,3,4,8,2,8,
+
+3,3,6,1,4,7,6,1,8,5,1,4,7,6,5,8,6,3,1,2,5,7,8,4,6,4,2,7,8,3,6,2,8,6,6,5,1,2,5,8,
+
+8,5,2,5,4,2,7,3,3,2,7,4,8,5,3,6,7,3,5,7,7,8,4,7,6,3,4,7,8,8,3,1,2,2,1,2,6,2,3,7,
+
+3,4,7,4,7,1,1,6,5,2,5,4,1,4,8,5,1,6,3,1,5,6,1,8,4,2,4,3,8,3,8,4,2,2,8,4,2,8,3,3,
+
+2,5,2,6,3,4,2,7,7,2,4,2,6,7,4,1,5,1,2,4,2,2,1,3,1,8,3,1,2,1,1,6,7,1,8,3,1,4,2,6,
+
+1,1,2,2,2,6,6,7,4,1,1,6,5,1,8,2,1,2,2,2,5,5,7,3,8,5,5,7,6,4,2,5,7,2,7,1,1,2,5,5,
+
+1,2,8,7,8,6,5,4,8,3,7,8,7,5,7,7,8,4,1,8,8,4,8,6,8,4,2,5,6,1,2,5,4,4,8,1,5,1,3,5,
+
+8,1,5,4,4,5,8,1,7,6,6,1,2,3,3,3,6,8,7,1,1,3,8,2,4,6,8,6,4,2,3,5,5,5,6,6,4,4,3,2,
+
+7,6,2,7,7,8,5,4,6,1,5,4,5,7,7,7,6,8,5,6,3,7,8,4,2,1,6,5,7,5,5,2,7,1,5,6,3,3,7,7,
+
+3,1,5,5,2,5,7,4,7,6,7,1,1,7,7,5,6,4,6,6,2,6,3,3,3,8,4,6,3,8,4,8,1,4,7,6,7,8,5,4,
+
+6,8,8,4,4,5,5,4,5,6,3,1,7,3,8,3,3,8,8,5,3,4,7,2,2,1,6,7,1,1,7,5,2,2,6,4,4,6,1,4,
+
+7,7,6,3,4,2,6,1,5,3,6,5,8,8,5,1,5,7,6,3,7,6,7,3,1,6,3,1,5,4,6,6,2,8,4,5,8,3,4,8,
+
+
+
+VALIDATION OF NATALGDISCRETE OUTPUT FILES
+
+
+
+for 'nchw73_NatAlgDiscreteA.py':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'A'
+
+for 'nchw73_NatAlgDiscreteB.py':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'B'
+
+for 'nchw73_NatAlgDiscreteC.py':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'C'
+
+
+
+for 'nchw73_WitnessA.txt':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'A'
+
+ parameters = [n = 160, num_cyc = 100000, N = 50, p = 0.5, q = 0.25, alpha = 2.0, beta = 1.5]
+
+ conflicts = 182; elapsed time = 58.3
+
+for 'nchw73_WitnessB.txt':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'B'
+
+ parameters = [n = 400, num_cyc = 30000, N = 40, p = 0.7, q = 0.25, alpha = 2.0, beta = 1.5]
+
+ conflicts = 308; elapsed time = 58.3
+
+for 'nchw73_WitnessC.txt':
+
+ username = 'nchw73'; algorithm code = 'CS'; problem code = 'GP'; graph digit = 'C'
+
+ parameters = [n = 800, num_cyc = 25000, N = 30, p = 0.7, q = 0.4, alpha = 2.0, beta = 1.5]
+
+ conflicts = 225; elapsed time = 58.3
+
+
+
+
+
+
+
+GENERAL FEEDBACK: The average overall mark for the assignment was just over 67%.
+
+
+
+As stated in the assignment specification, roughly half the marks available were performance-related and half available from the reports. The performance mark was computed automatically (using my software).
+
+
+
+NegSel [average mark 66%]: There were some good codes with good timings and good performance: quite a few students had a DR-FAR difference of at least 70 and this difference on average was 63.3. Moreover, there were some very inventive enhancements. Some students chose not to enhance or made only minimal enhancements (sometimes focussing on implementation enhancements rather than algorithmic ones). The quality of the written reports was mixed with quite a few students not providing what I requested in the assignment specification: extensive and methodological experimentation; depth of insights; and clarity and substance in the narrative. Some students obviously did some sort of experimentation but: did not describe the experimentation in sufficient detail; undertook the experimentation on an ad hoc basis rather than more rigorously, e.g., by undertaking an automated search; or focussed more on the results of the experimentation rather than on the methodology and experimentation itself. As regards the narrative: some students included insufficient technical details and substituted this with extraneous information, e.g., that described how the vanilla algorithm works; some students included (large) tables or graphs of results which convey limited information compared to the space that they take up; some students were far too brief in their explanations and did not describe their analysis in sufficient detail; and some students were just unclear as to what they (claimed they) did (on occasion, a narrative was just a list of results). Finally, insight was mixed too: some students only pointed out the absolutely obvious while others clearly got a good feel for trends and behaviour, usually through extensive experimentation, and often this advised innovative ways in which to enhance the basic algorithms. There was an overall small general improvement over last year's students.
+
+
+
+NatAlgReal [average mark 69%]: This part of the assignment was the easiest part and most codes quickly delivered answers very close to the true minimum. However, the quality of the reports was again mixed with all the general comments as regards the NegSel report also applying here. The enhancement of the vanilla algorithm was attempted less than for NegSel, though again there were some really good attempts at enhancement. The best student code found the minimum, of around -62.18269878, within 3.1 seconds. If reports had been better written (especially as regards detailing systematic experimentation) then more marks would have been forthcoming. Overall performance was almost identical to last year.
+
+
+
+NatAlgDiscrete [average mark 66%]: This part of the assignment was most demanding but also gave students the most opportunity to be innovative. The following are negative aspects of the report that cropped up throughout: the experimentation methodology was sometimes barely mentioned, either in terms of parameter tuning or as regards entity (e.g., bee, cuckoo) behaviour modification; discretization was often vague or missing with no mention of data structures or how high-level concepts, e.g., a Levy flight or a change in vertex colouring, are actually implemented; some students felt as if they had to fill the space up and did so with extraneous material, unnecessary images or tables or spacial formatting; there was often too much focus on listing results from various sets of parameters whereas what is required is a description of the methodology and an overview of the results with hypotheses/investigations as to why they occurred; some students were lacking on insight in that there was a focus on parameter values rather than, e.g., firefly or cuckoo behaviour, and the search methodologies employed; some students were ambiguous as to what they did (in discretization and enhancements); and some enhancements were not properly described and were done so only in one or two sentences. Quite a few students did not follow the guidelines in the assignment specification as to what was required in reports. Overall performance was slightly better than last year.
+
+
+
+Fines: A total of 25 marks were lost in fines which included: not packing and zipping files correctly; handing in ill-formed files (even though this was pointed out during validation); having fatal validation errors that had to be fixed by me; submitting crashing code that had to be fixed by me; and not submitting a validation file. This was an improvement on last year when 37 marks were lost in fines.
+
+
+
+In summary, I saw some innovative ideas and quite a few students are clearly well on top of the technical depth behind their chosen algorithms. I was a little disappointed with the report writing. I gave clear instructions as to what you should do and what I wanted and whilst this was clearly understood by many students, some students chose to go about writing their reports in an entirely different way and omitted or only sketched core content.
+
